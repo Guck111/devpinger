@@ -32,6 +32,7 @@ export const githubWebhookRoutes = async (app: FastifyInstance) => {
 				headers: req.headers,
 				rawBody,
 				parsedBody: req.body,
+				deliveryId,
 			})
 			childLog.info(
 				{

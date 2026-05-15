@@ -29,6 +29,7 @@ export const jiraWebhookRoutes = async (app: FastifyInstance) => {
 					headers,
 					rawBody,
 					parsedBody: req.body,
+					deliveryId: subscriptionId,
 				})
 				childLog.info(
 					{

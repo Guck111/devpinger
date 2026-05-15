@@ -1,6 +1,6 @@
 import type { NormalizedEvent, SourceAdapter, WebhookSubscriptionMatch } from "@devpinger/core"
-import { events as eventsTable } from "@devpinger/db"
-import { eq } from "drizzle-orm"
+import { events as eventsTable, webhookDeliveries } from "@devpinger/db"
+import { eq, sql } from "drizzle-orm"
 import type { db as Db } from "../db.js"
 import { logger } from "../logger.js"
 import { notificationsQueue } from "../queues.js"
@@ -74,6 +74,10 @@ export interface IngestInput {
 	headers: Record<string, string | string[] | undefined>
 	rawBody: string
 	parsedBody: unknown
+	// Optional provider-side delivery id (x-github-delivery for github,
+	// caller-chosen string for others). Stored in the audit row so
+	// /last_webhooks can correlate with provider dashboards.
+	deliveryId?: string
 }
 
 export interface IngestedEvent {
@@ -88,10 +92,42 @@ const markMuted = async (db: typeof Db, eventId: string): Promise<void> => {
 	await db.update(eventsTable).set({ status: "muted" }).where(eq(eventsTable.id, eventId))
 }
 
+const finishAudit = async (
+	db: typeof Db,
+	auditId: string | null,
+	patch: { result: "matched" | "no_match" | "error"; userId?: string; errorMessage?: string },
+): Promise<void> => {
+	if (!auditId) return
+	try {
+		await db
+			.update(webhookDeliveries)
+			.set({
+				processedAt: sql`now()`,
+				result: patch.result,
+				userId: patch.userId ?? null,
+				errorMessage: patch.errorMessage ?? null,
+			})
+			.where(eq(webhookDeliveries.id, auditId))
+	} catch (err) {
+		logger.warn({ err, auditId }, "failed to write webhook audit completion")
+	}
+}
+
 export const ingestWebhook = async (
 	db: typeof Db,
 	input: IngestInput,
 ): Promise<IngestedEvent[]> => {
+	let auditId: string | null = null
+	try {
+		const [row] = await db
+			.insert(webhookDeliveries)
+			.values({ provider: input.provider, sourceEventId: input.deliveryId ?? null })
+			.returning({ id: webhookDeliveries.id })
+		auditId = row?.id ?? null
+	} catch (err) {
+		logger.warn({ err }, "failed to record webhook delivery audit row")
+	}
+
 	const lookup = lookupForProvider(db, input.provider)
 	let events: NormalizedEvent[] = []
 	try {
@@ -102,9 +138,16 @@ export const ingestWebhook = async (
 	} catch (err) {
 		logger.error({ err, provider: input.provider }, "verifyAndNormalize failed")
 		captureError(err, { provider: input.provider, stage: "verifyAndNormalize" })
+		await finishAudit(db, auditId, {
+			result: "error",
+			errorMessage: err instanceof Error ? err.message.slice(0, 1000) : String(err).slice(0, 1000),
+		})
 		return []
 	}
-	if (events.length === 0) return []
+	if (events.length === 0) {
+		await finishAudit(db, auditId, { result: "no_match" })
+		return []
+	}
 
 	// Re-resolve the matching subscription so we know which user to attribute
 	// each event to. verifyAndNormalize already validated the lookup, so the
@@ -118,7 +161,10 @@ export const ingestWebhook = async (
 		rawBody: input.rawBody,
 		pathParam,
 	})
-	if (!match) return []
+	if (!match) {
+		await finishAudit(db, auditId, { result: "no_match" })
+		return []
+	}
 
 	const connection = await getConnection(db, match.userId, input.provider)
 	const userRow = await db.query.users
@@ -130,6 +176,7 @@ export const ingestWebhook = async (
 
 	if (!telegramChatId) {
 		logger.warn({ userId: match.userId }, "user has no telegramChatId; dropping events")
+		await finishAudit(db, auditId, { result: "no_match", userId: match.userId })
 		return []
 	}
 
@@ -180,5 +227,6 @@ export const ingestWebhook = async (
 		},
 		"ingest summary",
 	)
+	await finishAudit(db, auditId, { result: "matched", userId: match.userId })
 	return ingested
 }

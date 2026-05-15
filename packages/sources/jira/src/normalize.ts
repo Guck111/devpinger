@@ -166,6 +166,27 @@ export interface NormalizeJiraInput {
 	viewerAccountId: string | null
 }
 
+// Per-event-type metadata shapes that normalizeJiraEvent writes to
+// NormalizedEvent.metadata. Consumers should prefer these typed shapes
+// over `Record<string, unknown>` once they know the event.type.
+export interface JiraIssueMeta {
+	issueKey: string
+	projectKey: string | null
+	status: string | null
+	assigneeId: string | null
+}
+export interface JiraCommentMeta extends JiraIssueMeta {
+	commentId: string | null
+	mentionsViewer: boolean
+}
+export interface JiraWorklogMeta extends JiraIssueMeta {
+	worklogId: string | null
+	timeSpent: string | null
+	timeSpentSeconds: number | null
+}
+
+export type JiraEventMetadata = JiraIssueMeta | JiraCommentMeta | JiraWorklogMeta
+
 const baseMetadata = (issue: JiraIssue): Record<string, unknown> => {
 	const projectKey = issue.fields?.project?.key
 	return {

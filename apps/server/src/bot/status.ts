@@ -1,5 +1,5 @@
-import { events as eventsTable, subscriptions as subsTable } from "@devpinger/db"
-import { count, eq, max } from "drizzle-orm"
+import { events as eventsTable, subscriptions as subsTable, webhookDeliveries } from "@devpinger/db"
+import { count, desc, eq, max } from "drizzle-orm"
 import type { CommandContext } from "grammy"
 import { env } from "../config.js"
 import { db } from "../db.js"
@@ -25,12 +25,14 @@ export const handleStatusCommand = async (ctx: CommandContext<BotContext>): Prom
 	if (!telegramId || telegramId !== env.ADMIN_TELEGRAM_ID) return
 
 	try {
-		const [notifCounts, snoozeCounts, lastDeliveredRows, activeSubsRows] = await Promise.all([
-			notificationsQueue.getJobCounts("waiting", "active", "delayed", "failed", "completed"),
-			snoozeQueue.getJobCounts("waiting", "active", "delayed", "failed", "completed"),
-			db.select({ ts: max(eventsTable.deliveredAt) }).from(eventsTable),
-			db.select({ n: count() }).from(subsTable).where(eq(subsTable.isActive, true)),
-		])
+		const [notifCounts, snoozeCounts, lastDeliveredRows, activeSubsRows, recentWebhooks] =
+			await Promise.all([
+				notificationsQueue.getJobCounts("waiting", "active", "delayed", "failed", "completed"),
+				snoozeQueue.getJobCounts("waiting", "active", "delayed", "failed", "completed"),
+				db.select({ ts: max(eventsTable.deliveredAt) }).from(eventsTable),
+				db.select({ n: count() }).from(subsTable).where(eq(subsTable.isActive, true)),
+				db.select().from(webhookDeliveries).orderBy(desc(webhookDeliveries.receivedAt)).limit(5),
+			])
 		const lastDelivered = lastDeliveredRows[0]?.ts ?? null
 		const activeSubs = Number(activeSubsRows[0]?.n ?? 0)
 
@@ -40,6 +42,16 @@ export const handleStatusCommand = async (ctx: CommandContext<BotContext>): Prom
 					(Date.now() - new Date(lastDelivered).getTime()) / 1000,
 				)}s ago)`
 			: "—"
+
+		const webhookLines =
+			recentWebhooks.length === 0
+				? ["  —"]
+				: recentWebhooks.map((w) => {
+						const stamp = w.receivedAt.toISOString().slice(11, 19)
+						const result = w.result ?? "pending"
+						const delivery = w.sourceEventId ? ` ${w.sourceEventId.slice(0, 12)}` : ""
+						return `  ${stamp} ${w.provider} ${result}${delivery}`
+					})
 
 		const lines = [
 			"🩺 <b>DevPinger status</b>",
@@ -57,6 +69,9 @@ export const handleStatusCommand = async (ctx: CommandContext<BotContext>): Prom
 			`  delayed:   ${snoozeCounts.delayed}`,
 			`  failed:    ${snoozeCounts.failed}`,
 			`  completed: ${snoozeCounts.completed}`,
+			"",
+			"<b>last 5 webhooks</b>",
+			...webhookLines,
 			"",
 			`<b>active subscriptions</b>: ${activeSubs}`,
 			`<b>last delivered</b>: ${lastDeliveredText}`,

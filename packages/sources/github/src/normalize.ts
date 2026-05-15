@@ -9,6 +9,59 @@ export interface NormalizeInput {
 	viewerLogin: string // GitHub username of the connected DevPinger user
 }
 
+// Per-event-type metadata shapes that normalizeEvent writes to
+// NormalizedEvent.metadata. Consumers (bot actions, formatters) can narrow
+// safely using `event.type` instead of the previous `as Record<string,
+// unknown>` cast. The metadata also carries `eventId` after the row goes
+// through dbEventToNormalized — that's not in this union by design (it's a
+// DB-side concern, not an adapter-side concern).
+export interface GithubPullRequestMeta {
+	prNumber: number
+	action: string
+	draft?: boolean
+	merged: boolean
+	additions?: number
+	deletions?: number
+	changedFiles?: number
+}
+export interface GithubReviewMeta {
+	prNumber: number
+	state: string
+	action: string
+}
+export interface GithubCommentMeta {
+	number: number
+	mentionedSelf: boolean
+	isPr: boolean
+}
+export interface GithubIssueMeta {
+	issueNumber: number
+	action: string
+	mentionedSelf: boolean
+}
+export interface GithubReleaseMeta {
+	tag: string
+	prerelease: boolean
+}
+export interface GithubWorkflowRunMeta {
+	workflow: string
+	branch: string
+	attempt: number
+}
+export interface GithubSecurityAdvisoryMeta {
+	severity: string
+	ghsaId: string
+}
+
+export type GithubEventMetadata =
+	| GithubPullRequestMeta
+	| GithubReviewMeta
+	| GithubCommentMeta
+	| GithubIssueMeta
+	| GithubReleaseMeta
+	| GithubWorkflowRunMeta
+	| GithubSecurityAdvisoryMeta
+
 const SUPPORTED_EVENTS = new Set([
 	"pull_request",
 	"pull_request_review",

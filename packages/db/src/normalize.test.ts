@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { type DbEventLike, dbEventToNormalized } from "./db-event-to-normalized.js"
+import { type DbEventLike, dbEventToNormalized } from "./normalize.js"
 
 const base = (overrides: Partial<DbEventLike> = {}): DbEventLike => ({
 	id: "db-id-1",
