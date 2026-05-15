@@ -8,6 +8,7 @@ import { db } from "../db.js"
 import { logger } from "../logger.js"
 import { destinationRegistry } from "../registries.js"
 import { captureError } from "../sentry.js"
+import { decideDelivery } from "./decide-delivery.js"
 
 export interface NotificationJob {
 	eventId: string
@@ -36,21 +37,7 @@ interface DbEvent {
 	createdAt: Date
 }
 
-export type DeliveryDecision =
-	| "deliver"
-	| "missing"
-	| "muted"
-	| "still-snoozed"
-	| "already-delivered"
-
-export const decideDelivery = (event: DbEvent | null, now: Date = new Date()): DeliveryDecision => {
-	if (!event) return "missing"
-	if (event.status === "muted") return "muted"
-	if (event.snoozedUntil && event.snoozedUntil > now) return "still-snoozed"
-	if (event.telegramMessageId !== null) return "already-delivered"
-	if (event.status === "delivered") return "already-delivered"
-	return "deliver"
-}
+export { type DeliveryDecision, decideDelivery } from "./decide-delivery.js"
 
 const dbEventToNormalized = (event: DbEvent): NormalizedEvent => {
 	const metadata = (event.metadata as Record<string, unknown> | null) ?? {}

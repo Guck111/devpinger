@@ -122,12 +122,17 @@ export const isTerminalEventType = (eventType: string): boolean => {
 	return eventType === "pull_request.closed" || eventType === "issues.closed"
 }
 
-const SELF_SUPPRESSIBLE_PREFIXES = ["pull_request.", "issues."]
+const SELF_SUPPRESSIBLE_PREFIXES = ["pull_request.", "issues.", "jira:issue_"]
 const SELF_SUPPRESSIBLE_EXACT = new Set<string>([
 	"issue_comment",
 	"pull_request_review_comment",
 	"pull_request_review.submitted",
 	"pull_request_review.edited",
+	"comment_created",
+	"comment_updated",
+	"worklog_created",
+	"worklog_updated",
+	"worklog_deleted",
 ])
 
 export const isSelfSuppressibleEventType = (eventType: string): boolean => {

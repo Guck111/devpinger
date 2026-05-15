@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm"
 import type { Redis } from "ioredis"
 import { db } from "../db.js"
 import { logger } from "../logger.js"
+import { shouldRedeliverOnWake } from "./wake-decision.js"
 
 export interface SnoozeJob {
 	eventId: string
@@ -13,16 +14,7 @@ export interface SnoozeJob {
 	locale: Locale
 }
 
-export interface SnoozeWakeCandidate {
-	status: "pending" | "delivered" | "snoozed" | "muted" | "completed" | null
-}
-
-export const shouldRedeliverOnWake = (event: SnoozeWakeCandidate | null): boolean => {
-	if (!event) return false
-	if (event.status === "completed") return false
-	if (event.status === "muted") return false
-	return true
-}
+export { type SnoozeWakeCandidate, shouldRedeliverOnWake } from "./wake-decision.js"
 
 export const startSnoozeWorker = (connection: Redis) => {
 	const notifications = new Queue("notifications", { connection })

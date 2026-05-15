@@ -27,11 +27,7 @@ import {
 } from "./actions.js"
 import { type I18nFlavor, createI18nMiddleware } from "./i18n.js"
 import { dbLocaleResolver } from "./locale-resolver.js"
-import {
-	handleProjectAdd,
-	handleProjectRemove,
-	handleProjectsCommand,
-} from "./projects.js"
+import { handleProjectAdd, handleProjectRemove, handleProjectsCommand } from "./projects.js"
 import { handleRepoAdd, handleRepoRemove, handleReposCommand } from "./repos.js"
 
 export type BotContext = Context & I18nFlavor
