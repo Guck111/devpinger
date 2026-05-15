@@ -152,9 +152,11 @@
 		"statsBody": "📊 Твоя статистика DevPinger\n\nВсего событий: {total}\nДоставлено: {delivered}\nЗамьючено: {muted}\n\nПо приоритету — 🔴 {high} · 🟡 {medium} · 🟢 {low}\nПо источнику — GitHub: {github} · Jira: {jira}"
 	},
 	"repos": {
-		"prompt": "Выбери репозитории, за которыми будет следить DevPinger:",
+		"prompt": "Последние репозитории. /repos <имя> — поиск по имени.",
 		"empty": "Доступных репозиториев не найдено.",
 		"loadError": "Не удалось загрузить репозитории — попробуй позже.",
+		"searchEmpty": "Не нашёл репозиториев по запросу «{query}».",
+		"searchHeader": "Нашёл {count} по запросу «{query}»:",
 		"alreadyTracked": "{fullName} уже отслеживается.",
 		"added": "✅ Подключил {fullName}.",
 		"removed": "🗑 Отключил {fullName}.",
@@ -162,9 +164,11 @@
 		"loading": "Гружу твои репозитории…"
 	},
 	"jiraProjects": {
-		"prompt": "Выбери проекты Jira, за которыми будет следить DevPinger:",
+		"prompt": "Последние проекты Jira. /projects <имя> — поиск.",
 		"empty": "Доступных проектов Jira не найдено.",
 		"loadError": "Не удалось загрузить проекты Jira — попробуй позже.",
+		"searchEmpty": "Не нашёл проектов по запросу «{query}».",
+		"searchHeader": "Нашёл {count} по запросу «{query}»:",
 		"alreadyTracked": "Проект {key} уже отслеживается.",
 		"added": "✅ Подключил проект {key}.",
 		"removed": "🗑 Отключил проект {key}.",

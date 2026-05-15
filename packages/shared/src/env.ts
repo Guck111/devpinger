@@ -22,6 +22,10 @@ const serverEnvSchema = z.object({
 	JIRA_OAUTH_CLIENT_SECRET: z.string().min(1),
 	JIRA_OAUTH_REDIRECT_URI: z.string().url(),
 	SENTRY_DSN: z.string().url().optional(),
+	// Telegram ID of the operator. Gates admin-only bot commands
+	// (e.g. /notify_self). Optional in production where admin actions
+	// happen via DB / SQL.
+	ADMIN_TELEGRAM_ID: z.coerce.number().int().positive().optional(),
 })
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>

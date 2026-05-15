@@ -12,8 +12,7 @@ import { recentEvents, userStats } from "../services/history.js"
 import { listMutes } from "../services/mutes.js"
 import { clearPendingAction, getPendingAction } from "../services/pending-action.js"
 import { signTg } from "../services/signed-tg.js"
-import { listSubscriptions } from "../services/subscriptions.js"
-import { getUserByTelegramId, upsertUser } from "../services/users.js"
+import { getUserByTelegramId, setNotifySelfActions, upsertUser } from "../services/users.js"
 import {
 	handleApprove,
 	handleClose,
@@ -28,6 +27,12 @@ import {
 } from "./actions.js"
 import { type I18nFlavor, createI18nMiddleware } from "./i18n.js"
 import { dbLocaleResolver } from "./locale-resolver.js"
+import {
+	handleProjectAdd,
+	handleProjectRemove,
+	handleProjectsCommand,
+} from "./projects.js"
+import { handleRepoAdd, handleRepoRemove, handleReposCommand } from "./repos.js"
 
 export type BotContext = Context & I18nFlavor
 
@@ -132,32 +137,27 @@ bot.command("sources", async (ctx) => {
 	)
 })
 
-bot.command("repos", async (ctx) => {
-	const telegramId = ctx.from?.id
-	if (!telegramId) return
-	const user = await getUserByTelegramId(db, telegramId)
-	if (!user) return
-	const subs = await listSubscriptions(db, user.id, "github")
-	if (subs.length === 0) {
-		await ctx.reply(ctx.t("repos.empty"))
-		return
-	}
-	const lines = subs.map((s) => `• ${s.displayName} (${s.providerScopeId})`)
-	await ctx.reply(`${ctx.t("hub.connections.repos")}\n${lines.join("\n")}`)
+bot.command("repos", handleReposCommand)
+bot.command("projects", handleProjectsCommand)
+
+bot.callbackQuery(/^repo:add:(.+)$/, async (ctx) => {
+	const fullName = ctx.match?.[1]
+	if (fullName) await handleRepoAdd(ctx, fullName)
 })
 
-bot.command("projects", async (ctx) => {
-	const telegramId = ctx.from?.id
-	if (!telegramId) return
-	const user = await getUserByTelegramId(db, telegramId)
-	if (!user) return
-	const subs = await listSubscriptions(db, user.id, "jira")
-	if (subs.length === 0) {
-		await ctx.reply(ctx.t("jiraProjects.empty"))
-		return
-	}
-	const lines = subs.map((s) => `• ${s.displayName} (${s.providerScopeId})`)
-	await ctx.reply(`${ctx.t("hub.connections.projects")}\n${lines.join("\n")}`)
+bot.callbackQuery(/^repo:rm:(.+)$/, async (ctx) => {
+	const subId = ctx.match?.[1]
+	if (subId) await handleRepoRemove(ctx, subId)
+})
+
+bot.callbackQuery(/^proj:add:(.+)$/, async (ctx) => {
+	const key = ctx.match?.[1]
+	if (key) await handleProjectAdd(ctx, key)
+})
+
+bot.callbackQuery(/^proj:rm:(.+)$/, async (ctx) => {
+	const subId = ctx.match?.[1]
+	if (subId) await handleProjectRemove(ctx, subId)
 })
 
 bot.command("mutes", async (ctx) => {
@@ -226,6 +226,22 @@ bot.command("lang", async (ctx) => {
 		kb.text(locale === "en" ? "English" : "Русский", `lang:set:${locale}`).row()
 	}
 	await ctx.reply(ctx.t("settings.langPrompt"), { reply_markup: kb })
+})
+
+bot.command("notify_self", async (ctx) => {
+	const telegramId = ctx.from?.id
+	if (!telegramId || telegramId !== env.ADMIN_TELEGRAM_ID) return
+	const user = await getUserByTelegramId(db, telegramId)
+	if (!user) return
+	const arg = ctx.match?.toString().trim().toLowerCase()
+	if (arg === "on" || arg === "off") {
+		const next = arg === "on"
+		await setNotifySelfActions(db, user.id, next)
+		await ctx.reply(next ? "📢 Own actions: ON" : "🔕 Own actions: OFF")
+		return
+	}
+	const current = user.notifySelfActions ? "ON" : "OFF"
+	await ctx.reply(`Current: ${current}\nUsage: /notify_self on|off`)
 })
 
 bot.command("cancel", async (ctx) => {
