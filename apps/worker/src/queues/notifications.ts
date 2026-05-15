@@ -7,7 +7,7 @@ import type { Redis } from "ioredis"
 import { db } from "../db.js"
 import { logger } from "../logger.js"
 import { destinationRegistry } from "../registries.js"
-import { captureError } from "../sentry.js"
+import { addBreadcrumb, captureError } from "../sentry.js"
 import { decideDelivery } from "./decide-delivery.js"
 
 export interface NotificationJob {
@@ -69,6 +69,13 @@ export const startNotificationsWorker = (connection: Redis) => {
 	const worker = new Worker<NotificationJob>(
 		"notifications",
 		async (job) => {
+			const start = Date.now()
+			addBreadcrumb({
+				category: "queue.notifications",
+				level: "info",
+				message: "job started",
+				data: { jobId: job.id, eventId: job.data.eventId, userId: job.data.userId },
+			})
 			const [event] = (await db
 				.select()
 				.from(eventsTable)
@@ -107,16 +114,24 @@ export const startNotificationsWorker = (connection: Redis) => {
 					deliveredAt: sql`now()`,
 				})
 				.where(eq(eventsTable.id, event.id))
+			logger.info(
+				{
+					queue: "notifications",
+					jobId: job.id,
+					eventId: event.id,
+					userId: job.data.userId,
+					chatId: job.data.telegramChatId,
+					latencyMs: Date.now() - start,
+				},
+				"notification delivered",
+			)
 		},
 		{ connection, concurrency: 10 },
 	)
 
 	worker.on("failed", (job, err) => {
 		logger.error({ jobId: job?.id, err }, "notification job failed")
-		captureError(err, { queue: "notifications", jobId: job?.id })
-	})
-	worker.on("completed", (job) => {
-		logger.debug({ jobId: job.id }, "notification delivered")
+		captureError(err, { queue: "notifications", jobId: job?.id, eventId: job?.data.eventId })
 	})
 
 	return worker

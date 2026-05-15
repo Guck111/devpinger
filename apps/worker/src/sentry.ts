@@ -21,6 +21,13 @@ export const initSentry = (): void => {
 	logger.info({ environment: env.NODE_ENV }, "Sentry initialised")
 }
 
+export const isSentryEnabled = (): boolean => initialised
+
+export const addBreadcrumb = (breadcrumb: Sentry.Breadcrumb): void => {
+	if (!initialised) return
+	Sentry.addBreadcrumb(breadcrumb)
+}
+
 export const captureError = (err: unknown, context?: Record<string, unknown>): void => {
 	if (!initialised) return
 	const safeContext = redactObject(context)

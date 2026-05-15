@@ -15,6 +15,7 @@ export const jiraWebhookRoutes = async (app: FastifyInstance) => {
 			const { subscriptionId } = req.params as { subscriptionId: string }
 			const rawBody = req.rawBody ?? ""
 			const adapter = sourceRegistry.require("jira")
+			const childLog = logger.child({ webhook: "jira", subscriptionId })
 			// Mirror the subscription id into a header so the adapter's
 			// verifyAndNormalize can read it without a path-aware shim.
 			const headers = {
@@ -29,9 +30,16 @@ export const jiraWebhookRoutes = async (app: FastifyInstance) => {
 					rawBody,
 					parsedBody: req.body,
 				})
+				childLog.info(
+					{
+						accepted: ingested.length,
+						muted: ingested.filter((i) => i.muted).length,
+					},
+					"jira webhook processed",
+				)
 				return reply.code(200).send({ accepted: ingested.length })
 			} catch (err) {
-				logger.error({ err, subscriptionId }, "jira webhook ingest failed")
+				childLog.error({ err }, "jira webhook ingest failed")
 				return reply.code(500).send({ error: "ingest failed" })
 			}
 		},
