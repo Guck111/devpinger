@@ -31,6 +31,7 @@ import { type I18nFlavor, createI18nMiddleware } from "./i18n.js"
 import { dbLocaleResolver } from "./locale-resolver.js"
 import { handleProjectAdd, handleProjectRemove, handleProjectsCommand } from "./projects.js"
 import { handleRepoAdd, handleRepoRemove, handleReposCommand } from "./repos.js"
+import { handleStatusCommand } from "./status.js"
 
 export type BotContext = Context & I18nFlavor
 
@@ -251,6 +252,8 @@ bot.command("notify_self", async (ctx) => {
 		: ctx.t("settings.notifySelfOff")
 	await ctx.reply(ctx.t("settings.notifySelfStatus", { state }))
 })
+
+bot.command("status", handleStatusCommand)
 
 bot.command("cancel", async (ctx) => {
 	const telegramId = ctx.from?.id

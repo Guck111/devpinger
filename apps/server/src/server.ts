@@ -12,6 +12,7 @@ import { jiraOauthRoutes } from "./routes/oauth/jira.js"
 import { telegramRoutes } from "./routes/telegram.js"
 import { githubWebhookRoutes } from "./routes/webhooks/github.js"
 import { jiraWebhookRoutes } from "./routes/webhooks/jira.js"
+import { Sentry, isSentryEnabled } from "./sentry.js"
 
 export interface AppContext {
 	planGate: PlanGate
@@ -46,6 +47,10 @@ export const createApp = async (extensions: AppExtensions = {}) => {
 			}
 		},
 	)
+
+	if (isSentryEnabled()) {
+		Sentry.setupFastifyErrorHandler(app)
+	}
 
 	await app.register(helmet, { contentSecurityPolicy: false })
 	await app.register(cors, { origin: false })

@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm"
 import type { db as Db } from "../db.js"
 import { logger } from "../logger.js"
 import { notificationsQueue } from "../queues.js"
+import { captureError } from "../sentry.js"
 import { getConnection } from "./connections.js"
 import { persistEvent } from "./events.js"
 import { verifyGithubSignature } from "./github-signature.js"
@@ -100,6 +101,7 @@ export const ingestWebhook = async (
 		)
 	} catch (err) {
 		logger.error({ err, provider: input.provider }, "verifyAndNormalize failed")
+		captureError(err, { provider: input.provider, stage: "verifyAndNormalize" })
 		return []
 	}
 	if (events.length === 0) return []
@@ -166,5 +168,17 @@ export const ingestWebhook = async (
 			muted: muteResult.muted,
 		})
 	}
+	const mutedCount = ingested.filter((i) => i.muted).length
+	logger.info(
+		{
+			provider: input.provider,
+			subscriptionId: match.subscriptionId,
+			userId: match.userId,
+			eventsCount: ingested.length,
+			muted: mutedCount,
+			delivered: ingested.length - mutedCount,
+		},
+		"ingest summary",
+	)
 	return ingested
 }

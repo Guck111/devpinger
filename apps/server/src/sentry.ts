@@ -16,9 +16,17 @@ export const initSentry = (): void => {
 		environment: env.NODE_ENV,
 		tracesSampleRate: env.NODE_ENV === "production" ? 0.1 : 0,
 		serverName: "devpinger-server",
+		integrations: [Sentry.fastifyIntegration()],
 	})
 	initialised = true
 	logger.info({ environment: env.NODE_ENV }, "Sentry initialised")
+}
+
+export const isSentryEnabled = (): boolean => initialised
+
+export const addBreadcrumb = (breadcrumb: Sentry.Breadcrumb): void => {
+	if (!initialised) return
+	Sentry.addBreadcrumb(breadcrumb)
 }
 
 export const captureError = (err: unknown, context?: Record<string, unknown>): void => {
