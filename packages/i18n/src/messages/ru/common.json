@@ -1,0 +1,8 @@
+{
+	"appName": "DevPinger",
+	"tagline": "Единый inbox твоих dev-инструментов — в Telegram",
+	"language": {
+		"english": "English",
+		"russian": "Русский"
+	}
+}

@@ -1,0 +1,8 @@
+{
+	"extends": "@devpinger/tsconfig/node.json",
+	"compilerOptions": {
+		"resolveJsonModule": true
+	},
+	"include": ["src/**/*.ts", "src/**/*.json"],
+	"exclude": ["node_modules", "dist"]
+}
