@@ -7,6 +7,7 @@ import {
 } from "@devpinger/sources-github"
 import type { CallbackQueryContext, CommandContext, Context } from "grammy"
 import { InlineKeyboard } from "grammy"
+import type { InlineKeyboardButton, InlineKeyboardMarkup } from "grammy/types"
 import { env } from "../config.js"
 import { db } from "../db.js"
 import { logger } from "../logger.js"
@@ -64,6 +65,30 @@ const filterByQuery = (repos: GithubRepoSummary[], query: string): GithubRepoSum
 	const needle = query.trim().toLowerCase()
 	if (needle.length === 0) return repos
 	return repos.filter((r) => r.fullName.toLowerCase().includes(needle))
+}
+
+// Build a new InlineKeyboardMarkup that mirrors the existing one but with
+// the button whose callback_data matches `targetData` replaced by
+// (newLabel, newData). Telegram doesn't let us mutate one button in place;
+// we have to re-send the whole markup.
+const replaceButton = (
+	existing: InlineKeyboardMarkup | undefined,
+	targetData: string,
+	newLabel: string,
+	newData: string,
+): InlineKeyboardMarkup | null => {
+	if (!existing) return null
+	let touched = false
+	const rows: InlineKeyboardButton[][] = existing.inline_keyboard.map((row) =>
+		row.map((btn) => {
+			if ("callback_data" in btn && btn.callback_data === targetData) {
+				touched = true
+				return { text: newLabel, callback_data: newData }
+			}
+			return btn
+		}),
+	)
+	return touched ? { inline_keyboard: rows } : null
 }
 
 export const handleReposCommand = async (ctx: CommandContext<BotContext>): Promise<void> => {
@@ -140,7 +165,7 @@ export const handleRepoAdd = async (
 				callbackUrl: `${env.PUBLIC_BASE_URL}/webhooks/github`,
 			},
 		)
-		await createSubscription(db, {
+		const sub = await createSubscription(db, {
 			userId: user.id,
 			provider: "github",
 			providerScopeId: fullName,
@@ -148,8 +173,20 @@ export const handleRepoAdd = async (
 			webhookId: result.subscriptionId,
 			webhookSecret: result.webhookSecret ?? null,
 		})
-		await ctx.answerCallbackQuery()
-		await ctx.reply(ctx.t("repos.added", { fullName }))
+		await ctx.answerCallbackQuery({ text: ctx.t("repos.added", { fullName }) })
+		const newMarkup = replaceButton(
+			ctx.callbackQuery.message?.reply_markup,
+			`repo:add:${fullName}`,
+			`➖ ${fullName}`,
+			`repo:rm:${sub.id}`,
+		)
+		if (newMarkup) {
+			try {
+				await ctx.editMessageReplyMarkup({ reply_markup: newMarkup })
+			} catch {
+				// message too old; toast is sufficient
+			}
+		}
 	} catch (err) {
 		logger.error({ err, fullName }, "repo add failed")
 		await ctx.answerCallbackQuery({
@@ -187,6 +224,20 @@ export const handleRepoRemove = async (
 		}
 	}
 	await deactivateSubscription(db, sub.id)
-	await ctx.answerCallbackQuery()
-	await ctx.reply(ctx.t("repos.removed", { fullName: sub.providerScopeId }))
+	await ctx.answerCallbackQuery({
+		text: ctx.t("repos.removed", { fullName: sub.providerScopeId }),
+	})
+	const newMarkup = replaceButton(
+		ctx.callbackQuery.message?.reply_markup,
+		`repo:rm:${sub.id}`,
+		`➕ ${sub.providerScopeId}`,
+		`repo:add:${sub.providerScopeId}`,
+	)
+	if (newMarkup) {
+		try {
+			await ctx.editMessageReplyMarkup({ reply_markup: newMarkup })
+		} catch {
+			// best effort
+		}
+	}
 }

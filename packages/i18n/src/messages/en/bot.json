@@ -50,7 +50,10 @@
 	"settings": {
 		"comingSoon": "Settings menu — coming soon.",
 		"langPrompt": "Choose your language:",
-		"langChanged": "Language switched to English."
+		"langChanged": "Language switched to English.",
+		"notifySelfOn": "📢 Own actions: ON",
+		"notifySelfOff": "🔕 Own actions: OFF",
+		"notifySelfStatus": "Current: {state}\nUsage: /notify_self on|off"
 	},
 	"eventDeepLink": {
 		"notFound": "This event is no longer available — it may have been cleaned up or it never belonged to you."
@@ -134,10 +137,11 @@
 	},
 	"mutes": {
 		"empty": "You don't have any mute rules yet. Tap 🔕 Mute on any event to add one.",
-		"listHeader": "Your mute rules:",
+		"listHeader": "Your mute rules. Tap any rule to remove it:",
 		"item": "{idx}. {scope}",
 		"removed": "🗑 Mute removed.",
 		"alreadyExists": "That mute rule is already in your list.",
+		"choosePrompt": "Mute what?",
 		"scope": {
 			"source": "source = {value}",
 			"repo": "repo = {value}",

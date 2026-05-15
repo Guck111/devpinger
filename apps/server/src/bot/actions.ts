@@ -1,7 +1,9 @@
 import { events, type Event } from "@devpinger/db"
 import { eq, sql } from "drizzle-orm"
 import type { CallbackQueryContext, Context } from "grammy"
+import { InlineKeyboard } from "grammy"
 import { db } from "../db.js"
+import { formatSnoozeUntil } from "../lib/format-time.js"
 import { logger } from "../logger.js"
 import { snoozeQueue } from "../queues.js"
 import { redisConnection } from "../queues.js"
@@ -221,7 +223,8 @@ export const handleSnooze = async (
 		{ eventId, userId: user.id, telegramChatId: user.telegramChatId, locale: user.lang },
 		delay,
 	)
-	await replyAck(ctx, "actionResult.snoozed", { until: wakeAt.toISOString() })
+	const until = formatSnoozeUntil(wakeAt, user.lang, user.timezone)
+	await replyAck(ctx, "actionResult.snoozed", { until })
 	// Keep snoozeJobId import alive for type-only export plus future de-dup.
 	void snoozeJobId
 }
@@ -232,10 +235,27 @@ export const handleMute = async (ctx: Callback, eventId: string): Promise<void> 
 		await replyError(ctx, "errors.notFound")
 		return
 	}
-	const scopeValue = event.scope ?? event.source
-	const scopeType = event.scope ? "repo" : "source"
-	await addMute(db, event.userId, scopeType, scopeValue)
-	await replyAck(ctx, "actionResult.muted", { scope: scopeValue })
+	await ctx.answerCallbackQuery()
+	const eventTypePrefix = event.type.split(".")[0] ?? event.type
+	const kb = new InlineKeyboard()
+	kb.text(
+		ctx.t("mutes.scope.event_type", { value: eventTypePrefix }),
+		`mute:create:event_type:${eventTypePrefix}:${event.id}`,
+	).row()
+	if (event.scope) {
+		const scopeLabel = event.source === "jira" ? "project" : "repo"
+		kb.text(
+			ctx.t(`mutes.scope.${scopeLabel}`, { value: event.scope }),
+			`mute:create:${scopeLabel}:${event.scope}:${event.id}`,
+		).row()
+	}
+	kb.text(
+		ctx.t("mutes.scope.source", { value: event.source }),
+		`mute:create:source:${event.source}:${event.id}`,
+	).row()
+	await ctx.reply(ctx.t("mutes.choosePrompt"), { reply_markup: kb })
+	// Keep addMute import alive (used by the create handler in bot/index.ts).
+	void addMute
 }
 
 export const handleViewDiff = async (ctx: Callback, eventId: string): Promise<void> => {

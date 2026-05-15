@@ -50,7 +50,10 @@
 	"settings": {
 		"comingSoon": "Меню настроек — скоро.",
 		"langPrompt": "Выбери язык:",
-		"langChanged": "Язык переключён на русский."
+		"langChanged": "Язык переключён на русский.",
+		"notifySelfOn": "📢 Свои действия: ВКЛ",
+		"notifySelfOff": "🔕 Свои действия: ВЫКЛ",
+		"notifySelfStatus": "Сейчас: {state}\nИспользование: /notify_self on|off"
 	},
 	"eventDeepLink": {
 		"notFound": "Это событие больше недоступно — оно могло быть удалено retention'ом или принадлежать не тебе."
@@ -134,10 +137,11 @@
 	},
 	"mutes": {
 		"empty": "Мьютов пока нет. Нажми 🔕 Замьютить на любом событии, чтобы добавить правило.",
-		"listHeader": "Твои мьюты:",
+		"listHeader": "Твои мьюты. Нажми на правило чтобы удалить:",
 		"item": "{idx}. {scope}",
 		"removed": "🗑 Мьют удалён.",
 		"alreadyExists": "Такое правило мьюта уже есть в списке.",
+		"choosePrompt": "Что мьютим?",
 		"scope": {
 			"source": "источник = {value}",
 			"repo": "репо = {value}",
