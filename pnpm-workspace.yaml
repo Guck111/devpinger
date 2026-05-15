@@ -1,6 +1,11 @@
 packages:
   - "apps/*"
   - "packages/*"
+  - "packages/sources/*"
+  - "packages/destinations/*"
+exclude:
+  - "packages/sources"
+  - "packages/destinations"
 
 onlyBuiltDependencies:
   - "@biomejs/biome"

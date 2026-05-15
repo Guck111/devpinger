@@ -7,14 +7,24 @@ export interface SourceCredentials {
 	[k: string]: unknown
 }
 
+// What an adapter passes to the server's subscription resolver to find the
+// owning user/subscription for an inbound webhook. GitHub-style adapters
+// pass `signature` + `rawBody` and the server iterates active
+// subscriptions, computing HMAC for each. Jira-style adapters embed the
+// subscription id in the webhook URL path and pass `pathParam` instead.
 export interface WebhookLookupRequest {
-	secret?: string
+	signature?: string
+	rawBody?: string
 	pathParam?: string
 }
 
 export interface WebhookSubscriptionMatch {
 	userId: string
 	subscriptionId: string
+	// Provider username of the connected user (e.g. GitHub login or Atlassian
+	// account id). Adapters use this for self-mention detection during
+	// normalize. Optional because not all adapters need it.
+	viewerUsername?: string
 }
 
 export interface SourceWebhookInput {
