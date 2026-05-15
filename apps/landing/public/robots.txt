@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://devpinger.com/sitemap.xml

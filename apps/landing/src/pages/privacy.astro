@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+
+const ru = {
+  'meta.title': 'Политика конфиденциальности — DevPinger',
+};
+---
+<Base
+  title="Privacy Policy — DevPinger"
+  description="What DevPinger collects, where it stores data, and how to delete it."
+  path="/privacy"
+  ru={ru}
+>
+  <!-- ============ EN ============ -->
+  <div data-lang-show="en">
+    <h1>Privacy Policy</h1>
+    <p class="lede">Plain English, no legalese. Last updated: 2026-05-15.</p>
+
+    <h2>What we collect</h2>
+    <ul>
+      <li><strong>Email address</strong> — when you purchase via Stripe or subscribe to updates.</li>
+      <li><strong>Telegram user ID and chat ID</strong> — when you start a conversation with <span class="mono">@dev_pinger_bot</span>, so we can deliver notifications.</li>
+      <li><strong>Source API tokens</strong> — when you connect GitHub, Jira, Stripe, or Sentry. Encrypted at rest with AES-256-GCM.</li>
+      <li><strong>Event metadata</strong> — PR titles, payment amounts, error stacks — only the parts needed to render readable Telegram messages.</li>
+    </ul>
+
+    <h2>Where we store it</h2>
+    <ul>
+      <li><strong>Billing data (email, payment)</strong> — Stripe (you can read their Privacy Policy at stripe.com/privacy).</li>
+      <li><strong>Product data (Telegram IDs, source tokens, event history)</strong> — Postgres on Hetzner (Germany / EU).</li>
+      <li><strong>Encryption</strong> — all source API tokens are encrypted with AES-256-GCM. Keys rotate on a schedule.</li>
+    </ul>
+
+    <h2>How long</h2>
+    <p>For active accounts: as long as the subscription is active. After cancellation or refund: an additional 30 days, then cascade-deleted.</p>
+
+    <h2>Your right to delete</h2>
+    <p>Send <code>/unsubscribe</code> or <code>/forget_event</code> inside the bot. We support GDPR right-to-erasure. Or email <a class="link" href="mailto:privacy@devpinger.com">privacy@devpinger.com</a> and we'll handle it within 7 days.</p>
+
+    <h2>Contact</h2>
+    <p>Questions, complaints, or data requests: <a class="link" href="mailto:privacy@devpinger.com">privacy@devpinger.com</a>.</p>
+  </div>
+
+  <!-- ============ RU ============ -->
+  <div data-lang-show="ru" hidden>
+    <h1>Политика конфиденциальности</h1>
+    <p class="lede">Простым языком, без юридического жаргона. Обновлено: 2026-05-15.</p>
+
+    <h2>Что собираем</h2>
+    <ul>
+      <li><strong>Email</strong> — при покупке через Stripe или подписке на обновления.</li>
+      <li><strong>Telegram user ID и chat ID</strong> — когда ты начинаешь диалог с <span class="mono">@dev_pinger_bot</span>, чтобы доставлять уведомления.</li>
+      <li><strong>API-токены источников</strong> — когда подключаешь GitHub, Jira, Stripe или Sentry. Хранятся в БД зашифрованными по AES-256-GCM.</li>
+      <li><strong>Метаданные событий</strong> — заголовки PR, суммы платежей, стек-трейсы ошибок — только то, что нужно для читаемого Telegram-сообщения.</li>
+    </ul>
+
+    <h2>Где храним</h2>
+    <ul>
+      <li><strong>Биллинг (email, платежи)</strong> — Stripe (политика — stripe.com/privacy).</li>
+      <li><strong>Продуктовые данные (Telegram ID, токены источников, история событий)</strong> — Postgres в Hetzner (Германия / ЕС).</li>
+      <li><strong>Шифрование</strong> — все API-токены источников зашифрованы AES-256-GCM. Ключи ротируются по расписанию.</li>
+    </ul>
+
+    <h2>Сколько храним</h2>
+    <p>Для активного аккаунта — пока действует подписка. После отмены или возврата — ещё 30 дней, затем каскадное удаление.</p>
+
+    <h2>Право на удаление</h2>
+    <p>Отправь <code>/unsubscribe</code> или <code>/forget_event</code> в боте. Мы поддерживаем GDPR right-to-erasure. Или напиши на <a class="link" href="mailto:privacy@devpinger.com">privacy@devpinger.com</a> — обработаем в течение 7 дней.</p>
+
+    <h2>Контакты</h2>
+    <p>Вопросы, жалобы, запросы данных — <a class="link" href="mailto:privacy@devpinger.com">privacy@devpinger.com</a>.</p>
+  </div>
+</Base>

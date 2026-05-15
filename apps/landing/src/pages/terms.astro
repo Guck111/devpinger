@@ -1,0 +1,75 @@
+---
+import Base from '../layouts/Base.astro';
+
+const ru = {
+  'meta.title': 'Условия (предзаказ) — DevPinger',
+};
+---
+<Base
+  title="Terms (preorder) — DevPinger"
+  description="The deal for early lifetime customers: what we promise, what happens if we miss the deadline."
+  path="/terms"
+  ru={ru}
+>
+  <!-- ============ EN ============ -->
+  <div data-lang-show="en">
+    <h1>Terms — Lifetime Early Access (preorder)</h1>
+    <p class="lede">Plain English, no legalese. Last updated: 2026-05-15.</p>
+
+    <h2>What you're buying</h2>
+    <p>A one-time payment of $9 USD for lifetime access to DevPinger Pro features. This is a <strong>preorder</strong> with a delivery commitment: the Stripe and Sentry sources will ship within 60 days of your purchase. GitHub and Jira sources work today.</p>
+
+    <h2>If we miss the 60-day deadline</h2>
+    <p>Full refund, one click. We'll initiate the refund automatically within 14 days after the deadline if Stripe and Sentry sources are not shipped. No questions, no negotiation.</p>
+
+    <h2>Lifetime, but not transferable</h2>
+    <p>Your lifetime access is tied to one Telegram account. You can't sell, gift, or transfer it. If you lose access to your Telegram account, contact us with proof of purchase and we'll re-link.</p>
+
+    <h2>Refunds after delivery</h2>
+    <p>Within 30 days of the Stripe and Sentry sources shipping, you can request a full refund — no questions asked. After 30 days, refunds are at our discretion.</p>
+
+    <h2>What "lifetime" means</h2>
+    <p>As long as DevPinger exists as a service. If the project shuts down, we'll give 90 days notice and an export of your data. The self-hosted MIT-licensed core remains available forever — <a class="link" href="https://github.com/Guck111/devpinger" target="_blank" rel="noopener">github.com/Guck111/devpinger</a>.</p>
+
+    <h2>Limits we don't promise</h2>
+    <ul>
+      <li>Specific delivery date for individual features beyond the 60-day window.</li>
+      <li>Compatibility with sources we haven't announced (e.g., Datadog, Slack-as-source).</li>
+      <li>SLA on uptime. We aim for 99%+ but don't guarantee it for the $9 tier.</li>
+    </ul>
+
+    <h2>Contact</h2>
+    <p>Questions about your preorder: <a class="link" href="mailto:hello@devpinger.com">hello@devpinger.com</a>.</p>
+  </div>
+
+  <!-- ============ RU ============ -->
+  <div data-lang-show="ru" hidden>
+    <h1>Условия — Lifetime ранний доступ (предзаказ)</h1>
+    <p class="lede">Простым языком, без юридического жаргона. Обновлено: 2026-05-15.</p>
+
+    <h2>Что покупаешь</h2>
+    <p>Разовый платёж $9 USD за пожизненный доступ к Pro-функциям DevPinger. Это <strong>предзаказ</strong> с обязательством отгрузки: источники Stripe и Sentry приедут в течение 60 дней после оплаты. GitHub и Jira работают уже сейчас.</p>
+
+    <h2>Если не успеем за 60 дней</h2>
+    <p>Полный возврат, один клик. Возврат запустим автоматически в течение 14 дней после дедлайна, если Stripe и Sentry не отгрузим. Без вопросов, без торговли.</p>
+
+    <h2>Lifetime — но не передаётся</h2>
+    <p>Пожизненный доступ привязан к одному Telegram-аккаунту. Нельзя продать, подарить или передать. Если потерял доступ к Telegram — напиши, с подтверждением покупки переcоединим.</p>
+
+    <h2>Возврат после отгрузки</h2>
+    <p>В течение 30 дней после отгрузки Stripe и Sentry — полный возврат по запросу, без вопросов. После 30 дней — на наше усмотрение.</p>
+
+    <h2>Что значит «lifetime»</h2>
+    <p>Пока DevPinger существует как сервис. Если проект закроется — предупредим за 90 дней и выгрузим твои данные. Self-hosted ядро под MIT остаётся доступным навсегда — <a class="link" href="https://github.com/Guck111/devpinger" target="_blank" rel="noopener">github.com/Guck111/devpinger</a>.</p>
+
+    <h2>Что мы не обещаем</h2>
+    <ul>
+      <li>Точную дату отгрузки отдельных фич за пределами 60-дневного окна.</li>
+      <li>Совместимость с источниками, которые мы не анонсировали (Datadog, Slack-as-source и т.д.).</li>
+      <li>SLA по uptime. Стремимся к 99%+, но на $9-тарифе не гарантируем.</li>
+    </ul>
+
+    <h2>Контакты</h2>
+    <p>Вопросы по предзаказу — <a class="link" href="mailto:hello@devpinger.com">hello@devpinger.com</a>.</p>
+  </div>
+</Base>

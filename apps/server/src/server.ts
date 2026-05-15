@@ -4,9 +4,11 @@ import cors from "@fastify/cors"
 import helmet from "@fastify/helmet"
 import rateLimit from "@fastify/rate-limit"
 import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify"
+import { env } from "./config.js"
 import { logger } from "./logger.js"
 import { destinationRegistry, sourceRegistry } from "./registries.js"
 import { healthRoutes } from "./routes/health.js"
+import { landingRoutes } from "./routes/landing.js"
 import { githubOauthRoutes } from "./routes/oauth/github.js"
 import { jiraOauthRoutes } from "./routes/oauth/jira.js"
 import { telegramRoutes } from "./routes/telegram.js"
@@ -53,10 +55,24 @@ export const createApp = async (extensions: AppExtensions = {}) => {
 	}
 
 	await app.register(helmet, { contentSecurityPolicy: false })
-	await app.register(cors, { origin: false })
+
+	const allowedOrigins = env.LANDING_ALLOWED_ORIGINS.split(",")
+		.map((s) => s.trim())
+		.filter(Boolean)
+	await app.register(cors, {
+		origin: (origin, cb) => {
+			// Webhooks (GitHub/Jira/Telegram) and other server-to-server calls
+			// arrive without an Origin header — pass through unaffected.
+			if (!origin) return cb(null, true)
+			if (allowedOrigins.includes(origin)) return cb(null, true)
+			cb(null, false)
+		},
+		methods: ["GET", "POST", "OPTIONS"],
+	})
 	await app.register(rateLimit, { max: 600, timeWindow: "1 minute" })
 
 	await app.register(healthRoutes)
+	await app.register(landingRoutes)
 	await app.register(telegramRoutes)
 	await app.register(githubOauthRoutes)
 	await app.register(jiraOauthRoutes)
