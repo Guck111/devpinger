@@ -39,11 +39,25 @@ const main = async () => {
 
 	await app.listen({ host: "0.0.0.0", port: env.PORT })
 
+	let shuttingDown = false
 	const shutdown = async (signal: string) => {
+		if (shuttingDown) return
+		shuttingDown = true
 		logger.info({ signal }, "shutting down")
-		await bot.stop()
-		await app.close()
-		process.exit(0)
+		const force = setTimeout(() => {
+			logger.warn("shutdown timeout exceeded, forcing exit")
+			process.exit(1)
+		}, 10_000)
+		force.unref()
+		try {
+			await bot.stop()
+			await app.close()
+			clearTimeout(force)
+			process.exit(0)
+		} catch (err) {
+			logger.error({ err }, "error during shutdown")
+			process.exit(1)
+		}
 	}
 	process.on("SIGINT", () => void shutdown("SIGINT"))
 	process.on("SIGTERM", () => void shutdown("SIGTERM"))

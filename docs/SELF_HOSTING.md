@@ -77,20 +77,46 @@ a new one on every deploy.
 
 ## Deploy
 
-The simplest setup runs server + worker in two containers and a
-PostgreSQL + Redis pair next to them. The repo doesn't ship a
-production `docker-compose` (each provider has its own conventions),
-but the moving parts are:
+The repo ships `docker-compose.prod.yml` which brings up postgres,
+redis, server, and worker in one command. After filling `.env`:
 
+```sh
+docker compose -f docker-compose.prod.yml up -d --build
 ```
-server  →  build with `pnpm build` in apps/server, run `node dist/index.js`
-worker  →  build with `pnpm build` in apps/worker, run `node dist/index.js`
-```
+
+A one-shot `migrate` service runs `pnpm --filter @devpinger/db migrate`
+before `server`/`worker` start, so the schema is always in sync.
+
+Provider-specific walkthroughs:
+
+- [Hetzner / generic VPS](deploy/hetzner.md) — Docker Compose + Caddy or
+  Cloudflare Tunnel for HTTPS.
+- [Fly.io](deploy/fly.md) — two Fly Machines (server + worker), managed
+  Postgres, Upstash Redis.
+- [Railway](deploy/railway.md) — managed Postgres + Redis + per-service
+  Dockerfile deploys.
+
+Both Dockerfiles use multi-stage builds (deps → runtime) and run as
+`node:22-alpine` with `tini` as PID 1, so signals propagate cleanly and
+in-flight webhooks finish before exit.
 
 In production, `NODE_ENV=production` makes the server register a
 Telegram webhook at startup (`POST /telegram/webhook`) instead of
 long-polling. Make sure your reverse proxy forwards that path with
 the body intact.
+
+### Graceful shutdown
+
+`SIGTERM` triggers an orderly shutdown:
+
+- **server** — `bot.stop()`, then close Fastify (drains in-flight HTTP).
+  Force-exit after 10s if anything hangs.
+- **worker** — close every BullMQ worker (waits for the current job to
+  finish), then queue schedulers and Redis. Force-exit after 30s.
+
+Rolling deploys (`docker compose up -d --build`, Fly's rolling strategy,
+Railway's auto-rollover) are safe — no webhook deliveries or
+notification jobs are dropped.
 
 ## Running migrations
 
@@ -124,9 +150,17 @@ it invalidates existing subscriptions and requires re-running the
 
 ## Monitoring
 
-`/health` and `/ready` return 200 when the server is up. They don't
-probe the DB or Redis — wire those into your own dashboard if you
-want deep checks.
+`/health` and `/ready` actively probe both Postgres (`SELECT 1`) and
+Redis (`PING`) with a 1s timeout each. Response shape:
+
+```json
+{ "status": "ok", "db": "ok", "redis": "ok", "ts": "2026-05-15T…" }
+```
+
+On failure the endpoint returns HTTP 503 with `status: "degraded"` and
+the failing component flagged as `"fail"`. Wire either path into your
+Kubernetes liveness/readiness probes, uptime monitor (BetterStack,
+Healthchecks.io), or load balancer.
 
 If `SENTRY_DSN` is set, the server captures unhandled errors there
 (redacted with `@devpinger/shared` to strip secret-looking strings

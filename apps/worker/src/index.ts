@@ -36,13 +36,27 @@ const main = async () => {
 
 	logger.info({ count: workers.length }, "workers started")
 
+	let shuttingDown = false
 	const shutdown = async (signal: string) => {
+		if (shuttingDown) return
+		shuttingDown = true
 		logger.info({ signal }, "shutting down workers")
-		await Promise.all(workers.map((w) => w.close()))
-		await cleanup.scheduler.close()
-		await oauthCleanup.scheduler.close()
-		await connection.quit()
-		process.exit(0)
+		const force = setTimeout(() => {
+			logger.warn("worker shutdown timeout exceeded, forcing exit")
+			process.exit(1)
+		}, 30_000)
+		force.unref()
+		try {
+			await Promise.all(workers.map((w) => w.close()))
+			await cleanup.scheduler.close()
+			await oauthCleanup.scheduler.close()
+			await connection.quit()
+			clearTimeout(force)
+			process.exit(0)
+		} catch (err) {
+			logger.error({ err }, "error during worker shutdown")
+			process.exit(1)
+		}
 	}
 
 	process.on("SIGINT", () => void shutdown("SIGINT"))
