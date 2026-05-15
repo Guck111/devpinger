@@ -141,6 +141,23 @@ describe("formatEvent — jira issue", () => {
 	})
 })
 
+describe("formatEvent — Telegram 4096-char cap", () => {
+	it("truncates very long bodies to <= 4000 chars", () => {
+		const longBody = "x".repeat(10_000)
+		const longTitle = `viewer/repo #1: ${"t".repeat(2000)}`
+		const result = formatEvent({
+			event: mkEvent({
+				title: longTitle,
+				bodyPreview: longBody,
+			}),
+			lang: "en",
+			eventId: "evt-long",
+		})
+		expect(result.text.length).toBeLessThanOrEqual(4000)
+		expect(result.text.endsWith("…")).toBe(true)
+	})
+})
+
 describe("formatEvent — Russian locale", () => {
 	it("renders text in ru", () => {
 		const result = formatEvent({

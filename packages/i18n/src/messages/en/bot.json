@@ -133,7 +133,8 @@
 		"snoozed": "😴 Snoozed until {until}.",
 		"muted": "🔕 Muted {scope}.",
 		"diffEmpty": "Diff is empty.",
-		"diffTooBigFile": "Diff attached as a file."
+		"diffTooBigFile": "Diff attached as a file.",
+		"alreadyDone": "Already done."
 	},
 	"mutes": {
 		"empty": "You don't have any mute rules yet. Tap 🔕 Mute on any event to add one.",

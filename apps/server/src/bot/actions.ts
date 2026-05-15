@@ -57,6 +57,14 @@ const replyError = async (ctx: Callback, key: string, params: Record<string, unk
 	await ctx.answerCallbackQuery({ text: ctx.t(key, params as Record<string, string | number>) })
 }
 
+const statusFromError = (err: unknown): number | undefined => {
+	if (err && typeof err === "object" && "status" in err) {
+		const s = (err as { status?: unknown }).status
+		if (typeof s === "number") return s
+	}
+	return undefined
+}
+
 const runProviderAction = async (
 	ctx: Callback,
 	event: Event,
@@ -80,11 +88,23 @@ const runProviderAction = async (
 		await action({ type: "oauth", ...connection.credentials }, { ...basePayload, ...payloadExtra })
 		return true
 	} catch (err) {
-		logger.error({ err, eventId: event.id, actionName }, "provider action failed")
+		const status = statusFromError(err)
+		logger.error({ err, status, eventId: event.id, actionName }, "provider action failed")
+		if (status === 404 || status === 410) {
+			await replyError(ctx, "errors.notFound")
+			return false
+		}
+		if (status === 401 || status === 403) {
+			await replyError(ctx, "errors.forbidden")
+			return false
+		}
 		await replyError(ctx, "errors.actionFailed", { reason: String((err as Error).message) })
 		return false
 	}
 }
+
+const isAlreadyCompleted = (event: Event): boolean =>
+	event.status === "completed" || event.status === "muted"
 
 export const handleApprove = async (ctx: Callback, eventId: string): Promise<void> => {
 	const event = await loadEventForUser(ctx, eventId)
@@ -96,8 +116,18 @@ export const handleApprove = async (ctx: Callback, eventId: string): Promise<voi
 		await replyError(ctx, "errors.notSupported")
 		return
 	}
+	if (isAlreadyCompleted(event)) {
+		await replyError(ctx, "actionResult.alreadyDone")
+		return
+	}
 	const ok = await runProviderAction(ctx, event, "approve")
-	if (ok) await replyAck(ctx, "actionResult.approved")
+	if (ok) {
+		await db
+			.update(events)
+			.set({ status: "completed", completedAt: sql`now()` })
+			.where(eq(events.id, eventId))
+		await replyAck(ctx, "actionResult.approved")
+	}
 }
 
 export const handleMerge = async (ctx: Callback, eventId: string): Promise<void> => {
@@ -108,6 +138,10 @@ export const handleMerge = async (ctx: Callback, eventId: string): Promise<void>
 	}
 	if (event.source !== "github") {
 		await replyError(ctx, "errors.notSupported")
+		return
+	}
+	if (isAlreadyCompleted(event)) {
+		await replyError(ctx, "actionResult.alreadyDone")
 		return
 	}
 	const ok = await runProviderAction(ctx, event, "merge", { method: "squash" })
@@ -128,6 +162,10 @@ export const handleClose = async (ctx: Callback, eventId: string): Promise<void>
 	}
 	if (event.source !== "github") {
 		await replyError(ctx, "errors.notSupported")
+		return
+	}
+	if (isAlreadyCompleted(event)) {
+		await replyError(ctx, "actionResult.alreadyDone")
 		return
 	}
 	const ok = await runProviderAction(ctx, event, "closeIssue")

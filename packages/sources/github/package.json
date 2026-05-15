@@ -18,6 +18,7 @@
 	},
 	"dependencies": {
 		"@devpinger/core": "workspace:*",
+		"@octokit/plugin-retry": "^7.2.1",
 		"@octokit/rest": "^21.0.2",
 		"@octokit/webhooks-types": "^7.6.1"
 	},
