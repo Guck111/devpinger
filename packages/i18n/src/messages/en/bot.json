@@ -152,9 +152,11 @@
 		"statsBody": "📊 Your DevPinger stats\n\nTotal events: {total}\nDelivered: {delivered}\nMuted: {muted}\n\nBy priority — 🔴 {high} · 🟡 {medium} · 🟢 {low}\nBy source — GitHub: {github} · Jira: {jira}"
 	},
 	"repos": {
-		"prompt": "Pick the repositories you want DevPinger to watch:",
+		"prompt": "Recent repositories. Send /repos <name> to search by name.",
 		"empty": "No accessible repositories found.",
 		"loadError": "Failed to load repositories — try again later.",
+		"searchEmpty": "No repositories match \"{query}\".",
+		"searchHeader": "{count} repositories matching \"{query}\":",
 		"alreadyTracked": "{fullName} is already tracked.",
 		"added": "✅ Now watching {fullName}.",
 		"removed": "🗑 Stopped watching {fullName}.",
@@ -162,9 +164,11 @@
 		"loading": "Loading your repositories…"
 	},
 	"jiraProjects": {
-		"prompt": "Pick the Jira projects you want DevPinger to watch:",
+		"prompt": "Recent Jira projects. Send /projects <name> to search by name.",
 		"empty": "No accessible Jira projects found.",
 		"loadError": "Failed to load Jira projects — try again later.",
+		"searchEmpty": "No projects match \"{query}\".",
+		"searchHeader": "{count} projects matching \"{query}\":",
 		"alreadyTracked": "Project {key} is already tracked.",
 		"added": "✅ Now watching project {key}.",
 		"removed": "🗑 Stopped watching project {key}.",
