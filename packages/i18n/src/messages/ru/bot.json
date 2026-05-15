@@ -1,0 +1,173 @@
+{
+	"start": {
+		"welcome": "Привет, @{username}! Добро пожаловать в DevPinger.\n\nПодключи сервис, чтобы начать получать уведомления:",
+		"welcomeFallback": "Привет! Добро пожаловать в DevPinger.\n\nПодключи сервис, чтобы начать получать уведомления:",
+		"connectedGithub": "✅ GitHub подключён как @{login}. Отправь /repos, чтобы выбрать репозитории.",
+		"connectedJira": "✅ Jira подключён как {login}. Issues, комментарии и переходы статусов будут прилетать сюда."
+	},
+	"menu": {
+		"connectGithub": "🔗 Подключить GitHub",
+		"connectJira": "🔗 Подключить Jira",
+		"connectedHint": "{provider} уже подключён. Чтобы отвязать — отзови доступ DevPinger в настройках своего аккаунта {provider} (Applications / OAuth apps).",
+		"settings": "⚙️ Настройки",
+		"help": "❓ Помощь",
+		"language": "🌐 Язык"
+	},
+	"mainKeyboard": {
+		"connections": "📡 Источники",
+		"settings": "⚙️ Настройки"
+	},
+	"hub": {
+		"title": "Главное меню — выбери раздел:",
+		"back": "← Назад",
+		"close": "✖ Закрыть",
+		"connections": {
+			"title": "📡 <b>Источники</b>\nОткуда приходят события.",
+			"repos": "📁 Репозитории GitHub",
+			"projects": "📋 Проекты Jira"
+		},
+		"settings": {
+			"title": "⚙️ <b>Настройки</b>",
+			"notifications": "🔔 Уведомления",
+			"lang": "🌐 Язык",
+			"stats": "📊 Статистика"
+		},
+		"notifications": {
+			"title": "🔔 <b>Уведомления</b>\nЧто прилетает в личный чат.",
+			"selfActionsOn": "📢 Свои действия: ВКЛ",
+			"selfActionsOff": "🔕 Свои действия: ВЫКЛ (по умолчанию)",
+			"selfActionsHint": "Когда ВЫКЛ, бот не присылает события, которые ты сам же и триггерил (свои PR opened/closed/merged, свои комменты)."
+		}
+	},
+	"help": {
+		"text": "DevPinger собирает уведомления из GitHub и Jira в Telegram.\n\nКоманды:\n/start — подключить сервисы\n/repos — выбрать репозитории GitHub\n/projects — выбрать проекты Jira\n/mutes — список и управление мьютами\n/recent — последние 20 событий\n/stats — сводка по активности\n/lang — сменить язык"
+	},
+	"sources": {
+		"header": "📡 <b>Поддерживаемые источники</b>",
+		"github": "<b>GitHub</b> — issues, PR, ревью, комментарии, релизы. Подключение через /start.",
+		"jira": "<b>Jira Cloud</b> — issues, комментарии, переходы статусов, упоминания. Подключение через /start."
+	},
+	"settings": {
+		"comingSoon": "Меню настроек — скоро.",
+		"langPrompt": "Выбери язык:",
+		"langChanged": "Язык переключён на русский."
+	},
+	"eventDeepLink": {
+		"notFound": "Это событие больше недоступно — оно могло быть удалено retention'ом или принадлежать не тебе."
+	},
+	"errors": {
+		"generic": "Что-то пошло не так. Попробуй ещё раз.",
+		"unauthorized": "Сначала подключи этот сервис через /start.",
+		"actionFailed": "Не получилось: {reason}",
+		"notSupported": "Это действие пока не поддерживается для такого события.",
+		"alreadyClosed": "Этот PR уже закрыт или слит.",
+		"cantApproveOwnPr": "GitHub не разрешает одобрять собственные пулл-реквесты.",
+		"notFound": "Этот PR или issue уже недоступен (удалён или закрыт).",
+		"forbidden": "Нет прав для этого действия на стороне провайдера.",
+		"providerRateLimit": "Провайдер сейчас отвечает с rate-limit — попробуй чуть позже.",
+		"reconnect": "Подключение к {provider} истекло или было отозвано. Подключи заново через /start."
+	},
+	"actionLabel": {
+		"prOpened": "🟢 PR открыт",
+		"prMerged": "🔀 PR смержен",
+		"prClosed": "🔴 PR закрыт",
+		"prReopened": "🔁 PR переоткрыт",
+		"prReadyForReview": "📝 PR готов к ревью",
+		"prReviewRequested": "👀 Запрошено ревью",
+		"prSynchronize": "🔄 PR обновлён",
+		"prEdited": "✏️ PR отредактирован",
+		"prDraft": "🚧 PR черновик",
+		"prAssigned": "👤 PR назначен",
+		"prAction": "🔧 PR обновление",
+		"prApproved": "✅ PR одобрен",
+		"prChangesRequested": "❌ Запрошены правки",
+		"prReview": "🔎 PR ревью",
+		"prReviewComment": "💬 Комментарий к ревью",
+		"issueOpened": "🟢 Issue открыт",
+		"issueClosed": "🔴 Issue закрыт",
+		"issueReopened": "🔁 Issue переоткрыт",
+		"issueAction": "📋 Issue обновлён",
+		"issueComment": "💬 Новый комментарий к issue",
+		"prComment": "💬 Новый комментарий к PR",
+		"workflowFailed": "❌ Workflow упал",
+		"releasePublished": "🚀 Релиз",
+		"jiraIssueCreated": "🟢 Jira issue создан",
+		"jiraIssueUpdated": "📋 Jira issue обновлён",
+		"jiraStatusChanged": "🔄 Jira статус изменён",
+		"jiraComment": "💬 Jira комментарий",
+		"jiraWorklog": "⏱ Jira worklog"
+	},
+	"actions": {
+		"approve": "✅ Одобрить",
+		"requestChanges": "❌ Запросить правки",
+		"comment": "💬 Комментарий",
+		"reply": "↩ Ответить",
+		"viewDiff": "🔍 Diff",
+		"snooze1h": "😴 1ч",
+		"snooze4h": "😴 4ч",
+		"snoozeDay": "😴 1д",
+		"snoozeWeek": "😴 1н",
+		"open": "🔗 Открыть",
+		"mute": "🔕 Замьютить",
+		"close": "❌ Закрыть",
+		"reopen": "🔁 Переоткрыть",
+		"merge": "🚀 Замёржить",
+		"assign": "👤 Назначить на себя",
+		"transition": "🔄 Сменить статус"
+	},
+	"actionResult": {
+		"approved": "✅ Одобрено.",
+		"changesRequested": "❌ Запрошены правки.",
+		"commentPrompt": "Ответь на это сообщение текстом комментария. /cancel — отменить.",
+		"commentPosted": "💬 Комментарий отправлен.",
+		"commentCancelled": "Отменено.",
+		"commentExpired": "Сессия комментария истекла — нажми кнопку ещё раз.",
+		"closed": "❌ Закрыто.",
+		"reopened": "🔁 Переоткрыто.",
+		"merged": "🚀 Замёржено.",
+		"assigned": "👤 Назначено.",
+		"transitioned": "🔄 Переведено в {status}.",
+		"snoozed": "😴 Отложено до {until}.",
+		"muted": "🔕 Замьючено {scope}.",
+		"diffEmpty": "Diff пустой.",
+		"diffTooBigFile": "Diff приложен файлом."
+	},
+	"mutes": {
+		"empty": "Мьютов пока нет. Нажми 🔕 Замьютить на любом событии, чтобы добавить правило.",
+		"listHeader": "Твои мьюты:",
+		"item": "{idx}. {scope}",
+		"removed": "🗑 Мьют удалён.",
+		"alreadyExists": "Такое правило мьюта уже есть в списке.",
+		"scope": {
+			"source": "источник = {value}",
+			"repo": "репо = {value}",
+			"project": "проект = {value}",
+			"event_type": "тип события = {value}"
+		}
+	},
+	"history": {
+		"recentEmpty": "В истории пока пусто — события появятся здесь, как только начнут приходить.",
+		"recentHeader": "Последние {count} событий:",
+		"statsEmpty": "Данных пока нет — после первых событий /stats покажет цифры.",
+		"statsBody": "📊 Твоя статистика DevPinger\n\nВсего событий: {total}\nДоставлено: {delivered}\nЗамьючено: {muted}\n\nПо приоритету — 🔴 {high} · 🟡 {medium} · 🟢 {low}\nПо источнику — GitHub: {github} · Jira: {jira}"
+	},
+	"repos": {
+		"prompt": "Выбери репозитории, за которыми будет следить DevPinger:",
+		"empty": "Доступных репозиториев не найдено.",
+		"loadError": "Не удалось загрузить репозитории — попробуй позже.",
+		"alreadyTracked": "{fullName} уже отслеживается.",
+		"added": "✅ Подключил {fullName}.",
+		"removed": "🗑 Отключил {fullName}.",
+		"setupFailed": "Не получилось настроить webhook на {fullName}. Нужны admin-права в репо.",
+		"loading": "Гружу твои репозитории…"
+	},
+	"jiraProjects": {
+		"prompt": "Выбери проекты Jira, за которыми будет следить DevPinger:",
+		"empty": "Доступных проектов Jira не найдено.",
+		"loadError": "Не удалось загрузить проекты Jira — попробуй позже.",
+		"alreadyTracked": "Проект {key} уже отслеживается.",
+		"added": "✅ Подключил проект {key}.",
+		"removed": "🗑 Отключил проект {key}.",
+		"loading": "Гружу твои проекты Jira…"
+	}
+}

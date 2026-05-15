@@ -1,0 +1,173 @@
+{
+	"start": {
+		"welcome": "Hi @{username}! Welcome to DevPinger.\n\nConnect a service to start receiving notifications:",
+		"welcomeFallback": "Hi! Welcome to DevPinger.\n\nConnect a service to start receiving notifications:",
+		"connectedGithub": "✅ GitHub connected as @{login}. Send /repos to pick what to watch.",
+		"connectedJira": "✅ Jira connected as {login}. Issues, comments, and status changes will show up here."
+	},
+	"menu": {
+		"connectGithub": "🔗 Connect GitHub",
+		"connectJira": "🔗 Connect Jira",
+		"connectedHint": "{provider} is already connected. To disconnect, revoke DevPinger's access in your {provider} account settings (Applications / OAuth apps).",
+		"settings": "⚙️ Settings",
+		"help": "❓ Help",
+		"language": "🌐 Language"
+	},
+	"mainKeyboard": {
+		"connections": "📡 Sources",
+		"settings": "⚙️ Settings"
+	},
+	"hub": {
+		"title": "Main menu — pick a section:",
+		"back": "← Back",
+		"close": "✖ Close",
+		"connections": {
+			"title": "📡 <b>Sources</b>\nWhere events come from.",
+			"repos": "📁 GitHub repositories",
+			"projects": "📋 Jira projects"
+		},
+		"settings": {
+			"title": "⚙️ <b>Settings</b>",
+			"notifications": "🔔 Notifications",
+			"lang": "🌐 Language",
+			"stats": "📊 Stats"
+		},
+		"notifications": {
+			"title": "🔔 <b>Notifications</b>\nWhat lands in your personal chat.",
+			"selfActionsOn": "📢 Own actions: ON",
+			"selfActionsOff": "🔕 Own actions: OFF (default)",
+			"selfActionsHint": "When OFF, the bot doesn't send you events that you triggered yourself (your own PR opened/closed/merged, your own comments)."
+		}
+	},
+	"help": {
+		"text": "DevPinger aggregates notifications from GitHub and Jira into Telegram.\n\nCommands:\n/start — connect services\n/repos — pick GitHub repositories to watch\n/projects — pick Jira projects to watch\n/mutes — list and manage your mute rules\n/recent — last 20 events\n/stats — your activity summary\n/lang — switch language"
+	},
+	"sources": {
+		"header": "📡 <b>Supported sources</b>",
+		"github": "<b>GitHub</b> — issues, PRs, reviews, comments, releases. Connect via /start.",
+		"jira": "<b>Jira Cloud</b> — issues, comments, status transitions, mentions. Connect via /start."
+	},
+	"settings": {
+		"comingSoon": "Settings menu — coming soon.",
+		"langPrompt": "Choose your language:",
+		"langChanged": "Language switched to English."
+	},
+	"eventDeepLink": {
+		"notFound": "This event is no longer available — it may have been cleaned up or it never belonged to you."
+	},
+	"errors": {
+		"generic": "Something went wrong. Please try again.",
+		"unauthorized": "You need to connect this service first via /start.",
+		"actionFailed": "Action failed: {reason}",
+		"notSupported": "This action is not supported for this event yet.",
+		"alreadyClosed": "This PR is already closed or merged.",
+		"cantApproveOwnPr": "GitHub doesn't let you approve your own pull request.",
+		"notFound": "This PR or issue is no longer reachable (deleted or closed).",
+		"forbidden": "You do not have permission for this action on the provider side.",
+		"providerRateLimit": "The provider is rate-limiting us right now — try again in a moment.",
+		"reconnect": "Your {provider} connection expired or was revoked. Reconnect via /start."
+	},
+	"actionLabel": {
+		"prOpened": "🟢 PR opened",
+		"prMerged": "🔀 PR merged",
+		"prClosed": "🔴 PR closed",
+		"prReopened": "🔁 PR reopened",
+		"prReadyForReview": "📝 PR ready for review",
+		"prReviewRequested": "👀 Review requested",
+		"prSynchronize": "🔄 PR updated",
+		"prEdited": "✏️ PR edited",
+		"prDraft": "🚧 PR draft",
+		"prAssigned": "👤 PR assigned",
+		"prAction": "🔧 PR update",
+		"prApproved": "✅ PR approved",
+		"prChangesRequested": "❌ Changes requested",
+		"prReview": "🔎 PR review",
+		"prReviewComment": "💬 Review comment",
+		"issueOpened": "🟢 Issue opened",
+		"issueClosed": "🔴 Issue closed",
+		"issueReopened": "🔁 Issue reopened",
+		"issueAction": "📋 Issue update",
+		"issueComment": "💬 New issue comment",
+		"prComment": "💬 New PR comment",
+		"workflowFailed": "❌ Workflow failed",
+		"releasePublished": "🚀 Release",
+		"jiraIssueCreated": "🟢 Jira issue created",
+		"jiraIssueUpdated": "📋 Jira issue updated",
+		"jiraStatusChanged": "🔄 Jira status changed",
+		"jiraComment": "💬 Jira comment",
+		"jiraWorklog": "⏱ Jira worklog"
+	},
+	"actions": {
+		"approve": "✅ Approve",
+		"requestChanges": "❌ Request changes",
+		"comment": "💬 Comment",
+		"reply": "↩ Reply",
+		"viewDiff": "🔍 View diff",
+		"snooze1h": "😴 1h",
+		"snooze4h": "😴 4h",
+		"snoozeDay": "😴 1d",
+		"snoozeWeek": "😴 1w",
+		"open": "🔗 Open",
+		"mute": "🔕 Mute",
+		"close": "❌ Close",
+		"reopen": "🔁 Reopen",
+		"merge": "🚀 Merge",
+		"assign": "👤 Assign me",
+		"transition": "🔄 Transition"
+	},
+	"actionResult": {
+		"approved": "✅ Approved.",
+		"changesRequested": "❌ Changes requested.",
+		"commentPrompt": "Reply to this message with your comment text. Send /cancel to abort.",
+		"commentPosted": "💬 Comment posted.",
+		"commentCancelled": "Cancelled.",
+		"commentExpired": "Comment session expired — tap the button again.",
+		"closed": "❌ Closed.",
+		"reopened": "🔁 Reopened.",
+		"merged": "🚀 Merged.",
+		"assigned": "👤 Assigned.",
+		"transitioned": "🔄 Transitioned to {status}.",
+		"snoozed": "😴 Snoozed until {until}.",
+		"muted": "🔕 Muted {scope}.",
+		"diffEmpty": "Diff is empty.",
+		"diffTooBigFile": "Diff attached as a file."
+	},
+	"mutes": {
+		"empty": "You don't have any mute rules yet. Tap 🔕 Mute on any event to add one.",
+		"listHeader": "Your mute rules:",
+		"item": "{idx}. {scope}",
+		"removed": "🗑 Mute removed.",
+		"alreadyExists": "That mute rule is already in your list.",
+		"scope": {
+			"source": "source = {value}",
+			"repo": "repo = {value}",
+			"project": "project = {value}",
+			"event_type": "event type = {value}"
+		}
+	},
+	"history": {
+		"recentEmpty": "Nothing in your history yet — events will show up here once they come in.",
+		"recentHeader": "Last {count} events:",
+		"statsEmpty": "No data yet — once events arrive, /stats will show your totals.",
+		"statsBody": "📊 Your DevPinger stats\n\nTotal events: {total}\nDelivered: {delivered}\nMuted: {muted}\n\nBy priority — 🔴 {high} · 🟡 {medium} · 🟢 {low}\nBy source — GitHub: {github} · Jira: {jira}"
+	},
+	"repos": {
+		"prompt": "Pick the repositories you want DevPinger to watch:",
+		"empty": "No accessible repositories found.",
+		"loadError": "Failed to load repositories — try again later.",
+		"alreadyTracked": "{fullName} is already tracked.",
+		"added": "✅ Now watching {fullName}.",
+		"removed": "🗑 Stopped watching {fullName}.",
+		"setupFailed": "Could not set up the webhook on {fullName}. Make sure you have admin access.",
+		"loading": "Loading your repositories…"
+	},
+	"jiraProjects": {
+		"prompt": "Pick the Jira projects you want DevPinger to watch:",
+		"empty": "No accessible Jira projects found.",
+		"loadError": "Failed to load Jira projects — try again later.",
+		"alreadyTracked": "Project {key} is already tracked.",
+		"added": "✅ Now watching project {key}.",
+		"removed": "🗑 Stopped watching project {key}.",
+		"loading": "Loading your Jira projects…"
+	}
+}
