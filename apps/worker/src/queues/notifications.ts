@@ -1,5 +1,9 @@
-import type { NormalizedEvent } from "@devpinger/core"
-import { events as eventsTable, users as usersTable } from "@devpinger/db"
+import {
+	type DbEventLike,
+	dbEventToNormalized,
+	events as eventsTable,
+	users as usersTable,
+} from "@devpinger/db"
 import type { Locale } from "@devpinger/i18n"
 import { Worker } from "bullmq"
 import { eq, sql } from "drizzle-orm"
@@ -17,51 +21,14 @@ export interface NotificationJob {
 	lang: Locale
 }
 
-interface DbEvent {
-	id: string
+interface DbEvent extends DbEventLike {
 	userId: string
-	source: "github" | "jira"
-	sourceEventId: string
-	type: string
-	priority: "high" | "medium" | "low"
 	status: string
-	title: string
-	bodyPreview: string | null
-	url: string
-	scope: string | null
-	actorUsername: string | null
-	actorId: string | null
-	metadata: unknown
 	telegramMessageId: number | null
 	snoozedUntil: Date | null
-	createdAt: Date
 }
 
 export { type DeliveryDecision, decideDelivery } from "./decide-delivery.js"
-
-const dbEventToNormalized = (event: DbEvent): NormalizedEvent => {
-	const metadata = (event.metadata as Record<string, unknown> | null) ?? {}
-	return {
-		source: event.source,
-		sourceEventId: event.sourceEventId,
-		type: event.type,
-		priority: event.priority,
-		title: event.title,
-		bodyPreview: event.bodyPreview ?? undefined,
-		url: event.url,
-		repo: event.scope
-			? { id: event.scope, name: event.scope, fullName: event.scope, url: event.url }
-			: undefined,
-		actor: event.actorUsername
-			? {
-					id: event.actorId ?? event.actorUsername,
-					username: event.actorUsername,
-				}
-			: undefined,
-		metadata: { ...metadata, eventId: event.id },
-		createdAt: event.createdAt,
-	}
-}
 
 export const startNotificationsWorker = (connection: Redis) => {
 	const destination = destinationRegistry.require("telegram")
