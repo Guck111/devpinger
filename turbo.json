@@ -1,0 +1,59 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"globalDependencies": [".env"],
+	"globalEnv": [
+		"NODE_ENV",
+		"DATABASE_URL",
+		"REDIS_URL",
+		"TELEGRAM_BOT_TOKEN",
+		"TELEGRAM_WEBHOOK_SECRET",
+		"GITHUB_CLIENT_ID",
+		"GITHUB_CLIENT_SECRET",
+		"GITHUB_WEBHOOK_SECRET",
+		"GITLAB_CLIENT_ID",
+		"GITLAB_CLIENT_SECRET",
+		"GITLAB_WEBHOOK_SECRET",
+		"SENTRY_CLIENT_ID",
+		"SENTRY_CLIENT_SECRET",
+		"SENTRY_DSN",
+		"LINEAR_CLIENT_ID",
+		"LINEAR_CLIENT_SECRET",
+		"LINEAR_WEBHOOK_SECRET",
+		"VERCEL_WEBHOOK_SECRET",
+		"NETLIFY_WEBHOOK_SECRET",
+		"SLACK_CLIENT_ID",
+		"SLACK_CLIENT_SECRET",
+		"SLACK_SIGNING_SECRET",
+		"ANTHROPIC_API_KEY",
+		"STRIPE_SECRET_KEY",
+		"STRIPE_WEBHOOK_SECRET",
+		"STRIPE_PRICE_ID_PERSONAL",
+		"STRIPE_PRICE_ID_PRO",
+		"RESEND_API_KEY",
+		"EMAIL_FROM",
+		"EMAIL_VERIFY_SECRET",
+		"ENCRYPTION_KEY",
+		"PUBLIC_BASE_URL",
+		"TELEGRAM_BOT_USERNAME"
+	],
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"typecheck": {
+			"dependsOn": ["^build"]
+		},
+		"lint": {},
+		"test": {
+			"dependsOn": ["^build"]
+		},
+		"clean": {
+			"cache": false
+		}
+	}
+}
