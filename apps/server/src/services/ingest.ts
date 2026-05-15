@@ -1,4 +1,3 @@
-import { createHmac, timingSafeEqual } from "node:crypto"
 import type { NormalizedEvent, SourceAdapter, WebhookSubscriptionMatch } from "@devpinger/core"
 import { events as eventsTable } from "@devpinger/db"
 import { eq } from "drizzle-orm"
@@ -7,35 +6,28 @@ import { logger } from "../logger.js"
 import { notificationsQueue } from "../queues.js"
 import { getConnection } from "./connections.js"
 import { persistEvent } from "./events.js"
+import { verifyGithubSignature } from "./github-signature.js"
 import { evaluateMutes } from "./mutes.js"
 import type { OauthProvider } from "./oauth-state.js"
 import { shouldSuppressForSelf } from "./self-suppression.js"
 import { findActiveSubscriptionsByProvider, findSubscriptionById } from "./subscriptions.js"
+
+export { verifyGithubSignature } from "./github-signature.js"
 
 const githubLookup = async (
 	db: typeof Db,
 	signature: string,
 	rawBody: string,
 ): Promise<WebhookSubscriptionMatch | null> => {
-	const expectedPrefix = "sha256="
-	if (!signature.startsWith(expectedPrefix)) return null
-	const provided = Buffer.from(signature.slice(expectedPrefix.length), "hex")
-	if (provided.length === 0) return null
 	const candidates = await findActiveSubscriptionsByProvider(db, "github")
 	for (const sub of candidates) {
 		if (!sub.webhookSecret) continue
-		const computed = Buffer.from(
-			createHmac("sha256", sub.webhookSecret).update(rawBody).digest("hex"),
-			"hex",
-		)
-		if (computed.length !== provided.length) continue
-		if (timingSafeEqual(computed, provided)) {
-			const connection = await getConnection(db, sub.userId, "github")
-			return {
-				userId: sub.userId,
-				subscriptionId: sub.id,
-				viewerUsername: connection?.providerUsername ?? undefined,
-			}
+		if (!verifyGithubSignature(signature, rawBody, sub.webhookSecret)) continue
+		const connection = await getConnection(db, sub.userId, "github")
+		return {
+			userId: sub.userId,
+			subscriptionId: sub.id,
+			viewerUsername: connection?.providerUsername ?? undefined,
 		}
 	}
 	return null

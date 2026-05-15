@@ -72,9 +72,7 @@ export const handleProjectsCommand = async (ctx: CommandContext<BotContext>): Pr
 
 	if (projects.length === 0) {
 		await ctx.reply(
-			query.length > 0
-				? ctx.t("jiraProjects.searchEmpty", { query })
-				: ctx.t("jiraProjects.empty"),
+			query.length > 0 ? ctx.t("jiraProjects.searchEmpty", { query }) : ctx.t("jiraProjects.empty"),
 		)
 		return
 	}
