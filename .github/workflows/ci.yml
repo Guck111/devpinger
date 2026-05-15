@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: devpinger
+          POSTGRES_PASSWORD: devpinger
+          POSTGRES_DB: devpinger_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U devpinger"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint (Biome)
+        run: pnpm biome check .
+
+      - name: Typecheck
+        run: pnpm -r typecheck
+
+      - name: Migrate (Drizzle)
+        env:
+          DATABASE_URL: postgres://devpinger:devpinger@localhost:5432/devpinger_ci
+        run: pnpm db:migrate
+
+      - name: Verify migrations match schema
+        env:
+          DATABASE_URL: postgres://devpinger:devpinger@localhost:5432/devpinger_ci
+        run: pnpm --filter @devpinger/db exec drizzle-kit check
+
+      - name: Test
+        run: pnpm -r test
+
+      - name: Build
+        run: pnpm -r build
