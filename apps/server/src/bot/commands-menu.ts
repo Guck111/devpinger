@@ -16,6 +16,8 @@ const COMMANDS_EN: BotCommand[] = [
 	{ command: "stats", description: "Activity summary" },
 	{ command: "lang", description: "Switch language" },
 	{ command: "cancel", description: "Cancel the current step" },
+	{ command: "export", description: "Download a JSON copy of your data" },
+	{ command: "unsubscribe", description: "Delete your account" },
 ]
 
 const COMMANDS_RU: BotCommand[] = [
@@ -29,6 +31,8 @@ const COMMANDS_RU: BotCommand[] = [
 	{ command: "stats", description: "Сводка активности" },
 	{ command: "lang", description: "Сменить язык" },
 	{ command: "cancel", description: "Отменить текущий шаг" },
+	{ command: "export", description: "Скачать копию своих данных" },
+	{ command: "unsubscribe", description: "Удалить аккаунт" },
 ]
 
 export const registerBotCommands = async (api: Api<RawApi>): Promise<void> => {

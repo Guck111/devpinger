@@ -88,6 +88,12 @@ shipped `docker-compose.prod.yml`, plus provider-specific guides:
 - [Fly.io](docs/deploy/fly.md)
 - [Railway](docs/deploy/railway.md)
 
+## Privacy
+
+What we store, how long, how to delete: [docs/PRIVACY.md](docs/PRIVACY.md).
+TL;DR — `/unsubscribe` removes everything, `/export` gives you a JSON dump,
+`/forget_event <id>` forgets one event. OAuth tokens are AES-256-GCM at rest.
+
 ## Roadmap
 
 V1.5 brings Microsoft Teams as a source. V2 layers on AI digests, email
