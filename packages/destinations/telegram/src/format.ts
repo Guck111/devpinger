@@ -113,7 +113,11 @@ export const formatEvent = (input: FormatEventInput): FormattedNotification => {
 				: input.event.bodyPreview
 		lines.push(`└─ ${escapeHtml(preview)}`)
 	}
-	const text = lines.join("\n")
+	const TELEGRAM_MAX = 4000
+	let text = lines.join("\n")
+	if (text.length > TELEGRAM_MAX) {
+		text = `${text.slice(0, TELEGRAM_MAX - 1)}…`
+	}
 	const keyboard =
 		input.actions && input.actions.length > 0
 			? keyboardFromActions(input.actions, input.event.url, t)

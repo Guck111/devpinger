@@ -417,7 +417,17 @@ bot.callbackQuery("lang", async (ctx) => {
 bot.on("message:text", async (ctx, next) => {
 	const telegramId = ctx.from?.id
 	const text = ctx.message?.text
-	if (!telegramId || !text || text.startsWith("/")) {
+	if (!telegramId || !text) {
+		await next()
+		return
+	}
+	// Any new command voids an in-flight pending action: if the user sends
+	// /repos while a pending comment is open, treat that as "abandon the
+	// comment and run /repos". Only /cancel announces the abandonment; other
+	// commands silently clear and proceed.
+	if (text.startsWith("/")) {
+		const pending = await getPendingAction(redisConnection, telegramId)
+		if (pending) await clearPendingAction(redisConnection, telegramId)
 		await next()
 		return
 	}

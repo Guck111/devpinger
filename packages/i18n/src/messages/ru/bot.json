@@ -133,7 +133,8 @@
 		"snoozed": "😴 Отложено до {until}.",
 		"muted": "🔕 Замьючено {scope}.",
 		"diffEmpty": "Diff пустой.",
-		"diffTooBigFile": "Diff приложен файлом."
+		"diffTooBigFile": "Diff приложен файлом.",
+		"alreadyDone": "Уже выполнено."
 	},
 	"mutes": {
 		"empty": "Мьютов пока нет. Нажми 🔕 Замьютить на любом событии, чтобы добавить правило.",
