@@ -78,6 +78,16 @@ codebase extensible without forks. See
 
 Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Self-hosting
+
+Production deployment is documented in
+[docs/SELF_HOSTING.md](docs/SELF_HOSTING.md). One-command path with the
+shipped `docker-compose.prod.yml`, plus provider-specific guides:
+
+- [Hetzner / generic VPS](docs/deploy/hetzner.md)
+- [Fly.io](docs/deploy/fly.md)
+- [Railway](docs/deploy/railway.md)
+
 ## Roadmap
 
 V1.5 brings Microsoft Teams as a source. V2 layers on AI digests, email
