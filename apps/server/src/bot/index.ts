@@ -16,6 +16,13 @@ import { clearPendingAction, getPendingAction } from "../services/pending-action
 import { signTg } from "../services/signed-tg.js"
 import { getUserByTelegramId, setNotifySelfActions, upsertUser } from "../services/users.js"
 import {
+	handleDeleteCancel,
+	handleDeleteConfirm,
+	handleExportCommand,
+	handleForgetEventCommand,
+	handleUnsubscribeCommand,
+} from "./account.js"
+import {
 	handleApprove,
 	handleClose,
 	handleComment,
@@ -254,6 +261,13 @@ bot.command("notify_self", async (ctx) => {
 })
 
 bot.command("status", handleStatusCommand)
+
+bot.command("unsubscribe", handleUnsubscribeCommand)
+bot.command("export", handleExportCommand)
+bot.command("forget_event", handleForgetEventCommand)
+
+bot.callbackQuery("account:delete:confirm", handleDeleteConfirm)
+bot.callbackQuery("account:delete:cancel", handleDeleteCancel)
 
 bot.command("cancel", async (ctx) => {
 	const telegramId = ctx.from?.id
