@@ -58,3 +58,19 @@ export const removeMute = async (
 export const listMutes = async (db: typeof Db, userId: string): Promise<MuteRule[]> => {
 	return loadMutes(db, userId)
 }
+
+export const deleteMuteById = async (
+	db: typeof Db,
+	userId: string,
+	id: string,
+): Promise<{ removed: MuteRule | null }> => {
+	const rows = await db
+		.delete(mutes)
+		.where(and(eq(mutes.id, id), eq(mutes.userId, userId)))
+		.returning()
+	const row = rows[0]
+	if (!row) return { removed: null }
+	return {
+		removed: { id: row.id, scopeType: row.scopeType, scopeValue: row.scopeValue },
+	}
+}

@@ -1,8 +1,29 @@
 import { createJiraClient } from "@devpinger/sources-jira"
 import type { CallbackQueryContext, CommandContext, Context } from "grammy"
 import { InlineKeyboard } from "grammy"
+import type { InlineKeyboardButton, InlineKeyboardMarkup } from "grammy/types"
 import { db } from "../db.js"
 import { logger } from "../logger.js"
+
+const replaceButton = (
+	existing: InlineKeyboardMarkup | undefined,
+	targetData: string,
+	newLabel: string,
+	newData: string,
+): InlineKeyboardMarkup | null => {
+	if (!existing) return null
+	let touched = false
+	const rows: InlineKeyboardButton[][] = existing.inline_keyboard.map((row) =>
+		row.map((btn) => {
+			if ("callback_data" in btn && btn.callback_data === targetData) {
+				touched = true
+				return { text: newLabel, callback_data: newData }
+			}
+			return btn
+		}),
+	)
+	return touched ? { inline_keyboard: rows } : null
+}
 import { getConnection } from "../services/connections.js"
 import {
 	createSubscription,
@@ -106,14 +127,30 @@ export const handleProjectAdd = async (
 	const user = await getUserByTelegramId(db, telegramId)
 	if (!user) return
 	try {
-		await createSubscription(db, {
+		const sub = await createSubscription(db, {
 			userId: user.id,
 			provider: "jira",
 			providerScopeId: projectKey,
 			displayName: projectKey,
 		})
-		await ctx.answerCallbackQuery()
-		await ctx.reply(ctx.t("jiraProjects.added", { key: projectKey }))
+		await ctx.answerCallbackQuery({ text: ctx.t("jiraProjects.added", { key: projectKey }) })
+		const oldBtn = ctx.callbackQuery.message?.reply_markup?.inline_keyboard
+			.flat()
+			.find((b) => "callback_data" in b && b.callback_data === `proj:add:${projectKey}`)
+		const oldLabel = oldBtn?.text ?? `➖ ${projectKey}`
+		const newMarkup = replaceButton(
+			ctx.callbackQuery.message?.reply_markup,
+			`proj:add:${projectKey}`,
+			oldLabel.replace(/^➕/, "➖"),
+			`proj:rm:${sub.id}`,
+		)
+		if (newMarkup) {
+			try {
+				await ctx.editMessageReplyMarkup({ reply_markup: newMarkup })
+			} catch {
+				// best effort
+			}
+		}
 	} catch (err) {
 		logger.error({ err, projectKey }, "jira project add failed")
 		await ctx.answerCallbackQuery({ text: ctx.t("jiraProjects.loadError") })
@@ -134,6 +171,24 @@ export const handleProjectRemove = async (
 		return
 	}
 	await deactivateSubscription(db, sub.id)
-	await ctx.answerCallbackQuery()
-	await ctx.reply(ctx.t("jiraProjects.removed", { key: sub.providerScopeId }))
+	await ctx.answerCallbackQuery({
+		text: ctx.t("jiraProjects.removed", { key: sub.providerScopeId }),
+	})
+	const oldBtn = ctx.callbackQuery.message?.reply_markup?.inline_keyboard
+		.flat()
+		.find((b) => "callback_data" in b && b.callback_data === `proj:rm:${sub.id}`)
+	const oldLabel = oldBtn?.text ?? `➕ ${sub.providerScopeId}`
+	const newMarkup = replaceButton(
+		ctx.callbackQuery.message?.reply_markup,
+		`proj:rm:${sub.id}`,
+		oldLabel.replace(/^➖/, "➕"),
+		`proj:add:${sub.providerScopeId}`,
+	)
+	if (newMarkup) {
+		try {
+			await ctx.editMessageReplyMarkup({ reply_markup: newMarkup })
+		} catch {
+			// best effort
+		}
+	}
 }

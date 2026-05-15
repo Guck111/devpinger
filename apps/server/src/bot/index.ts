@@ -1,15 +1,17 @@
 import { events as eventsTable, users } from "@devpinger/db"
+import { formatEvent } from "@devpinger/destinations-telegram"
 import { SUPPORTED_LOCALES, isLocale } from "@devpinger/i18n"
 import { and, eq, sql } from "drizzle-orm"
 import { Bot, type Context, InlineKeyboard } from "grammy"
 import { env } from "../config.js"
 import { db } from "../db.js"
+import { dbEventToNormalized } from "../lib/db-event-to-normalized.js"
 import { logger } from "../logger.js"
 import { redisConnection } from "../queues.js"
 import { captureError } from "../sentry.js"
 import { listConnectedProviders } from "../services/connections.js"
 import { recentEvents, userStats } from "../services/history.js"
-import { listMutes } from "../services/mutes.js"
+import { deleteMuteById, listMutes } from "../services/mutes.js"
 import { clearPendingAction, getPendingAction } from "../services/pending-action.js"
 import { signTg } from "../services/signed-tg.js"
 import { getUserByTelegramId, setNotifySelfActions, upsertUser } from "../services/users.js"
@@ -93,8 +95,10 @@ bot.command("start", async (ctx) => {
 		const login = entry?.providerUsername ?? ctx.from?.username ?? "you"
 		if (provider === "github") {
 			await ctx.reply(ctx.t("start.connectedGithub", { login }))
+			await handleReposCommand(ctx)
 		} else {
 			await ctx.reply(ctx.t("start.connectedJira", { login }))
+			await handleProjectsCommand(ctx)
 		}
 		return
 	}
@@ -110,9 +114,16 @@ bot.command("start", async (ctx) => {
 			await ctx.reply(ctx.t("eventDeepLink.notFound"))
 			return
 		}
-		await ctx.reply(`<b>${event.title}</b>\n${event.url}`, {
+		const normalized = dbEventToNormalized(event)
+		const formatted = formatEvent({
+			event: normalized,
+			lang: user.lang,
+			eventId: event.id,
+		})
+		await ctx.reply(formatted.text, {
 			parse_mode: "HTML",
 			link_preview_options: { is_disabled: true },
+			reply_markup: formatted.keyboard,
 		})
 		return
 	}
@@ -167,13 +178,12 @@ bot.command("mutes", async (ctx) => {
 		return
 	}
 	const header = ctx.t("mutes.listHeader")
-	const lines = list.map((m, idx) =>
-		ctx.t("mutes.item", {
-			idx: idx + 1,
-			scope: ctx.t(`mutes.scope.${m.scopeType}`, { value: m.scopeValue }),
-		}),
-	)
-	await ctx.reply(`${header}\n${lines.join("\n")}`)
+	const kb = new InlineKeyboard()
+	for (const m of list) {
+		const label = ctx.t(`mutes.scope.${m.scopeType}`, { value: m.scopeValue })
+		kb.text(`🗑 ${label}`, `mute:rm:${m.id}`).row()
+	}
+	await ctx.reply(header, { reply_markup: kb })
 })
 
 bot.command("recent", async (ctx) => {
@@ -233,11 +243,13 @@ bot.command("notify_self", async (ctx) => {
 	if (arg === "on" || arg === "off") {
 		const next = arg === "on"
 		await setNotifySelfActions(db, user.id, next)
-		await ctx.reply(next ? "📢 Own actions: ON" : "🔕 Own actions: OFF")
+		await ctx.reply(next ? ctx.t("settings.notifySelfOn") : ctx.t("settings.notifySelfOff"))
 		return
 	}
-	const current = user.notifySelfActions ? "ON" : "OFF"
-	await ctx.reply(`Current: ${current}\nUsage: /notify_self on|off`)
+	const state = user.notifySelfActions
+		? ctx.t("settings.notifySelfOn")
+		: ctx.t("settings.notifySelfOff")
+	await ctx.reply(ctx.t("settings.notifySelfStatus", { state }))
 })
 
 bot.command("cancel", async (ctx) => {
@@ -312,6 +324,63 @@ bot.callbackQuery(/^act:(snz1h|snz4h|snz1d):(.+)$/, async (ctx) => {
 bot.callbackQuery(/^act:mute:(.+)$/, async (ctx) => {
 	const eventId = ctx.match?.[1]
 	if (eventId) await handleMute(ctx, eventId)
+})
+
+bot.callbackQuery(/^mute:rm:([0-9a-f-]+)$/, async (ctx) => {
+	const muteId = ctx.match?.[1]
+	if (!muteId) return
+	const telegramId = ctx.from?.id
+	if (!telegramId) return
+	const user = await getUserByTelegramId(db, telegramId)
+	if (!user) {
+		await ctx.answerCallbackQuery({ text: ctx.t("errors.notFound") })
+		return
+	}
+	const { removed } = await deleteMuteById(db, user.id, muteId)
+	await ctx.answerCallbackQuery({
+		text: removed ? ctx.t("mutes.removed") : ctx.t("errors.notFound"),
+	})
+	if (!removed) return
+	const remaining = await listMutes(db, user.id)
+	if (remaining.length === 0) {
+		try {
+			await ctx.editMessageText(ctx.t("mutes.empty"))
+		} catch {
+			// message too old or already edited
+		}
+		return
+	}
+	const kb = new InlineKeyboard()
+	for (const m of remaining) {
+		const label = ctx.t(`mutes.scope.${m.scopeType}`, { value: m.scopeValue })
+		kb.text(`🗑 ${label}`, `mute:rm:${m.id}`).row()
+	}
+	try {
+		await ctx.editMessageReplyMarkup({ reply_markup: kb })
+	} catch {
+		// best effort
+	}
+})
+
+bot.callbackQuery(/^mute:create:(source|repo|project|event_type):([^:]+):(.+)$/, async (ctx) => {
+	const scopeType = ctx.match?.[1] as "source" | "repo" | "project" | "event_type" | undefined
+	const scopeValue = ctx.match?.[2]
+	if (!scopeType || !scopeValue) return
+	const telegramId = ctx.from?.id
+	if (!telegramId) return
+	const user = await getUserByTelegramId(db, telegramId)
+	if (!user) return
+	const { addMute } = await import("../services/mutes.js")
+	const { created } = await addMute(db, user.id, scopeType, scopeValue)
+	const label = ctx.t(`mutes.scope.${scopeType}`, { value: scopeValue })
+	await ctx.answerCallbackQuery({
+		text: created ? ctx.t("actionResult.muted", { scope: label }) : ctx.t("mutes.alreadyExists"),
+	})
+	try {
+		await ctx.deleteMessage()
+	} catch {
+		// best effort
+	}
 })
 
 bot.callbackQuery("help", async (ctx) => {
