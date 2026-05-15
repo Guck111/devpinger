@@ -1,0 +1,29 @@
+{
+	"name": "@devpinger/destinations-telegram",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"exports": {
+		".": "./src/index.ts",
+		"./adapter": "./src/adapter.ts",
+		"./format": "./src/format.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run --passWithNoTests",
+		"clean": "rm -rf .turbo *.tsbuildinfo"
+	},
+	"dependencies": {
+		"@devpinger/core": "workspace:*",
+		"@devpinger/i18n": "workspace:*",
+		"grammy": "^1.32.0"
+	},
+	"devDependencies": {
+		"@devpinger/tsconfig": "workspace:*",
+		"@types/node": "^22.10.5",
+		"typescript": "^5.7.2",
+		"vitest": "^2.1.8"
+	}
+}
