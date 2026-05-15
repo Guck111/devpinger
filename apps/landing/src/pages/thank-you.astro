@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+
+const ru = {
+  'meta.title': 'Спасибо — DevPinger',
+};
+---
+<Base
+  title="Thank you — DevPinger"
+  description="Your lifetime access to DevPinger is confirmed."
+  path="/thank-you"
+  ru={ru}
+>
+  <!-- ============ EN ============ -->
+  <div data-lang-show="en">
+    <h1>Thank you. Your lifetime access is confirmed.</h1>
+    <p class="lede">Here's what happens next.</p>
+
+    <ol>
+      <li>You'll get an email from me (Arseni) within <strong>24 hours</strong> with your access details.</li>
+      <li>Stripe and Sentry sources ship within <strong>60 days</strong>. I'll email you every 2 weeks with progress.</li>
+      <li>Want to try GitHub and Jira sources right now? Open <span class="mono">@dev_pinger_bot</span> in Telegram → <code>/start</code>.</li>
+      <li>Reply to my email with any feature you want prioritized — you're in the first 30, your voice counts.</li>
+    </ol>
+
+    <p>Thanks for trusting an early product.</p>
+    <p class="muted">— Arseni</p>
+
+    <div style="margin-top: 40px;">
+      <a class="btn btn-primary btn-lg" href="https://t.me/dev_pinger_bot" target="_blank" rel="noopener">
+        Open @dev_pinger_bot →
+      </a>
+    </div>
+  </div>
+
+  <!-- ============ RU ============ -->
+  <div data-lang-show="ru" hidden>
+    <h1>Спасибо. Твой lifetime-доступ подтверждён.</h1>
+    <p class="lede">Что дальше.</p>
+
+    <ol>
+      <li>В течение <strong>24 часов</strong> я (Арсений) пришлю письмо с деталями доступа.</li>
+      <li>Stripe и Sentry отгрузим за <strong>60 дней</strong>. Раз в 2 недели — письмо с прогрессом.</li>
+      <li>Хочешь попробовать GitHub и Jira прямо сейчас? Открой <span class="mono">@dev_pinger_bot</span> в Telegram → <code>/start</code>.</li>
+      <li>Ответь на моё письмо с фичей, которую хочешь приоритизировать — ты в первых 30, твой голос важен.</li>
+    </ol>
+
+    <p>Спасибо за доверие к раннему продукту.</p>
+    <p class="muted">— Арсений</p>
+
+    <div style="margin-top: 40px;">
+      <a class="btn btn-primary btn-lg" href="https://t.me/dev_pinger_bot" target="_blank" rel="noopener">
+        Открыть @dev_pinger_bot →
+      </a>
+    </div>
+  </div>
+</Base>

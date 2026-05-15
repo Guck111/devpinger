@@ -2,7 +2,7 @@
 
 GitHub pull requests and Jira issues, delivered to one Telegram inbox.
 
-[**Open the bot →**](https://t.me/devpinger_bot) `@devpinger_bot`
+[**Open the bot →**](https://t.me/dev_pinger_bot) `@dev_pinger_bot`
 
 Tap `/start`, connect GitHub, optionally connect Jira. Events arrive in your
 personal chat with inline buttons to approve, comment, merge, transition,
@@ -13,14 +13,14 @@ snooze, or mute.
 | Surface | What you get |
 | --- | --- |
 | Sources | **GitHub** (PRs, reviews, comments, issues, releases, CI failures) and **Jira Cloud** (issues, comments, status changes, worklogs, mentions). |
-| Delivery | A single Telegram bot — `@devpinger_bot`. |
+| Delivery | A single Telegram bot — `@dev_pinger_bot`. |
 | Actions | GitHub: approve, request changes, comment, reply to review comment, merge, close, reopen, assign. Jira: add comment, transition, assign. |
 | Filtering | Mute by source, repo, project, or event type. Self-suppression (your own actions don't echo back). |
 | Auth | Telegram `/start` + OAuth flows opened from the bot for GitHub and Jira. Tokens are stored AES-256-GCM encrypted. |
 
 ## Quick start
 
-The fastest path is the managed bot — just open `@devpinger_bot` in Telegram.
+The fastest path is the managed bot — just open `@dev_pinger_bot` in Telegram.
 
 If you want to run your own copy, you need Node 22, pnpm 10, Docker (or
 another way to run Postgres 16 + Redis 7), and a publicly reachable URL

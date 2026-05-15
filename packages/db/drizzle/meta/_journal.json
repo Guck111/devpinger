@@ -15,6 +15,13 @@
       "when": 1778861432488,
       "tag": "0001_peaceful_richard_fisk",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778882325534,
+      "tag": "0002_broad_post",
+      "breakpoints": true
     }
   ]
 }
