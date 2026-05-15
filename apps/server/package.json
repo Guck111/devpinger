@@ -35,8 +35,12 @@
 	},
 	"devDependencies": {
 		"@devpinger/tsconfig": "workspace:*",
+		"@testcontainers/postgresql": "^10.28.0",
+		"@testcontainers/redis": "^10.28.0",
 		"@types/node": "^22.10.5",
 		"dotenv": "^16.4.7",
+		"nock": "^14.0.15",
+		"postgres": "^3.4.9",
 		"tsx": "^4.19.2",
 		"typescript": "^5.7.2",
 		"vitest": "^2.1.8"
