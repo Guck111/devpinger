@@ -1,4 +1,68 @@
 {
+	"metadata": {
+		"short": "Уведомления GitHub/Jira в Telegram с действиями одной кнопкой.",
+		"long": "DevPinger собирает уведомления из GitHub и Jira в один Telegram-чат: PR, ревью, комментарии, упавшие workflow, Jira-issues и смену статусов. Действия по одной кнопке — ✅ Approve, 💬 Comment, 🚀 Merge, 🔕 Mute, ⏰ Snooze. Без открытых вкладок и шумных каналов — только то, что важно для тебя."
+	},
+	"replyKeyboard": {
+		"connections": "📡 Подключения",
+		"events": "🔔 События",
+		"settings": "⚙️ Настройки",
+		"help": "❓ Помощь"
+	},
+	"hubV2": {
+		"connections": {
+			"title": "📡 <b>Подключения</b>\nОткуда приходят события.",
+			"githubConnect": "🐙 Подключить GitHub",
+			"githubConnected": "✅ GitHub: @{login}",
+			"jiraConnect": "🟦 Подключить Jira",
+			"jiraConnected": "✅ Jira: {login}",
+			"openRepos": "📁 Репозитории",
+			"openProjects": "📋 Проекты",
+			"disconnect": "🔌 Отключить",
+			"disconnectedGithub": "🔌 GitHub отключён. Webhooks в репозиториях остаются — удали их в Settings → Webhooks каждого репо.",
+			"disconnectedJira": "🔌 Jira отключена."
+		},
+		"events": {
+			"title": "🔔 <b>События</b>",
+			"recent": "📜 Последние 20",
+			"stats": "📊 Статистика",
+			"mutes": "🔕 Мьюты"
+		},
+		"settings": {
+			"title": "⚙️ <b>Настройки</b>",
+			"lang": "🌐 Язык: {current}",
+			"notifications": "🔔 Уведомления",
+			"account": "👤 Аккаунт"
+		},
+		"notifications": {
+			"title": "🔔 <b>Уведомления</b>",
+			"selfActionsOn": "📢 Свои действия: ВКЛ",
+			"selfActionsOff": "🔕 Свои действия: ВЫКЛ",
+			"selfActionsHint": "Когда ВЫКЛ, бот не присылает события, которые ты сам же и триггерил."
+		},
+		"account": {
+			"title": "👤 <b>Аккаунт</b>",
+			"export": "📤 Экспорт данных",
+			"delete": "🗑 Удалить аккаунт"
+		},
+		"back": "← Назад",
+		"close": "✖ Закрыть",
+		"mutesAdded": "🔕 Мьют добавлен. Управление — Настройки → 🔕 Мьюты."
+	},
+	"onboarding": {
+		"welcome": "Привет, {username}! Я <b>DevPinger</b>.\n\nСобираю уведомления из <b>GitHub</b> и <b>Jira</b> в один Telegram-чат и даю действия одной кнопкой: ✅ Approve, 💬 Comment, 🚀 Merge, 🔕 Mute.\n\nБез открытых вкладок и шумных каналов — только то, что важно.",
+		"welcomeFallback": "Привет! Я <b>DevPinger</b>.\n\nСобираю уведомления из <b>GitHub</b> и <b>Jira</b> в один Telegram-чат и даю действия одной кнопкой.",
+		"step1Title": "<b>Шаг 1 из 3 — подключи провайдер</b>",
+		"step1Body": "Достаточно одного, можно оба позже.",
+		"step2Title": "✅ {provider} подключён.\n\n<b>Шаг 2 из 3 — выбери, за чем следить</b>",
+		"step3Title": "🎉 Готово! {target} подключено.\n\n<b>Шаг 3 из 3 — жди первое событие</b>",
+		"step3Body": "Управление — кнопки внизу. Если что — <b>❓ Помощь</b>.",
+		"firstEvent": "👋 Первое событие! Кнопки выше — это действия, которые сразу делают что нужно."
+	},
+	"helpV2": {
+		"text": "🤖 <b>Что я делаю</b>\nСобираю события из GitHub и Jira и шлю их сюда — с кнопками действий.\n\n📡 <b>Поддерживаемое</b>\n<b>GitHub:</b> PR, issue, ревью, комментарии, релизы, упавшие workflow.\n<b>Jira:</b> issues, переходы статусов, комментарии, упоминания.\n\n🚀 <b>Как пользоваться</b>\n1. /start — подключи провайдер.\n2. /repos или /projects — выбери, за чем следить.\n3. Жди первое событие — там будут кнопки действий.\n\n🔕 <b>Лишний шум</b>\n/mutes — отключи целый источник, репо, проект или тип события.\n\n⚙️ <b>Управление</b>\nКнопки внизу: 📡 Подключения · 🔔 События · ⚙️ Настройки · ❓ Помощь"
+	},
+	"startAdaptive": "С возвращением, {username}!\n\n📡 {connectionsCount} {connectionsWord} · 📊 {eventsLast7d} событий за 7 дней\n\nВыбирай раздел внизу или жми /help.",
 	"start": {
 		"welcome": "Привет, @{username}! Добро пожаловать в DevPinger.\n\nПодключи сервис, чтобы начать получать уведомления:",
 		"welcomeFallback": "Привет! Добро пожаловать в DevPinger.\n\nПодключи сервис, чтобы начать получать уведомления:",
