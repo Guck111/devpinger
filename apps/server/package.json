@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "tsx watch --env-file=../../.env src/index.ts",
-		"build": "tsc",
+		"build": "tsup",
 		"start": "node dist/index.js",
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run --passWithNoTests",
@@ -41,6 +41,7 @@
 		"dotenv": "^16.4.7",
 		"nock": "^14.0.15",
 		"postgres": "^3.4.9",
+		"tsup": "^8.5.1",
 		"tsx": "^4.19.2",
 		"typescript": "^5.7.2",
 		"vitest": "^2.1.8"
