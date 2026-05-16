@@ -1,6 +1,8 @@
 import type { DestinationAdapter } from "@devpinger/core"
-import { createTelegramAdapter } from "@devpinger/destinations-telegram"
+import { createTelegramAdapter, createTelegramClient } from "@devpinger/destinations-telegram"
 import { env } from "./config.js"
+
+export const telegramClient = createTelegramClient({ botToken: env.TELEGRAM_BOT_TOKEN })
 
 class DestinationRegistry {
 	private readonly adapters = new Map<string, DestinationAdapter>()

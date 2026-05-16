@@ -344,13 +344,6 @@ bot.command("start", async (ctx) => {
 
 bot.command("help", handleHelpCommand)
 
-bot.command("sources", async (ctx) => {
-	await ctx.reply(
-		[ctx.t("sources.header"), ctx.t("sources.github"), ctx.t("sources.jira")].join("\n\n"),
-		{ parse_mode: "HTML" },
-	)
-})
-
 bot.command("repos", handleReposCommand)
 bot.command("projects", handleProjectsCommand)
 
@@ -493,13 +486,6 @@ bot.callbackQuery(/^lang:set:(en|ru)$/, async (ctx) => {
 			.where(eq(users.telegramId, telegramId))
 	}
 	await ctx.reply(target === "ru" ? "Язык переключён на русский." : "Language switched to English.")
-})
-
-bot.callbackQuery(/^oauth:info:(github|jira)$/, async (ctx) => {
-	await ctx.answerCallbackQuery()
-	const provider = ctx.match?.[1]
-	const name = provider === "github" ? "GitHub" : "Jira"
-	await ctx.reply(ctx.t("menu.connectedHint", { provider: name }))
 })
 
 bot.callbackQuery(/^act:approve:(.+)$/, async (ctx) => {

@@ -63,56 +63,7 @@
 		"text": "🤖 <b>What I do</b>\nI collect events from GitHub and Jira and send them here — with action buttons.\n\n📡 <b>Supported</b>\n<b>GitHub:</b> PRs, issues, reviews, comments, releases, failed workflows.\n<b>Jira:</b> issues, status transitions, comments, mentions.\n\n🚀 <b>How to use</b>\n1. /start — connect a provider.\n2. /repos or /projects — pick what to watch.\n3. Wait for the first event — action buttons will be inline.\n\n🔕 <b>Mute noise</b>\n/mutes — silence a whole source, repo, project, or event type.\n\n⚙️ <b>Controls</b>\nButtons below: 📡 Connections · 🔔 Events · ⚙️ Settings · ❓ Help"
 	},
 	"startAdaptive": "Welcome back, {username}!\n\n📡 {connectionsCount} {connectionsWord} · 📊 {eventsLast7d} events in the last 7 days\n\nPick a section below or hit /help.",
-	"start": {
-		"welcome": "Hi @{username}! Welcome to DevPinger.\n\nConnect a service to start receiving notifications:",
-		"welcomeFallback": "Hi! Welcome to DevPinger.\n\nConnect a service to start receiving notifications:",
-		"connectedGithub": "✅ GitHub connected as @{login}. Send /repos to pick what to watch.",
-		"connectedJira": "✅ Jira connected as {login}. Issues, comments, and status changes will show up here."
-	},
-	"menu": {
-		"connectGithub": "🔗 Connect GitHub",
-		"connectJira": "🔗 Connect Jira",
-		"connectedHint": "{provider} is already connected. To disconnect, revoke DevPinger's access in your {provider} account settings (Applications / OAuth apps).",
-		"settings": "⚙️ Settings",
-		"help": "❓ Help",
-		"language": "🌐 Language"
-	},
-	"mainKeyboard": {
-		"connections": "📡 Sources",
-		"settings": "⚙️ Settings"
-	},
-	"hub": {
-		"title": "Main menu — pick a section:",
-		"back": "← Back",
-		"close": "✖ Close",
-		"connections": {
-			"title": "📡 <b>Sources</b>\nWhere events come from.",
-			"repos": "📁 GitHub repositories",
-			"projects": "📋 Jira projects"
-		},
-		"settings": {
-			"title": "⚙️ <b>Settings</b>",
-			"notifications": "🔔 Notifications",
-			"lang": "🌐 Language",
-			"stats": "📊 Stats"
-		},
-		"notifications": {
-			"title": "🔔 <b>Notifications</b>\nWhat lands in your personal chat.",
-			"selfActionsOn": "📢 Own actions: ON",
-			"selfActionsOff": "🔕 Own actions: OFF (default)",
-			"selfActionsHint": "When OFF, the bot doesn't send you events that you triggered yourself (your own PR opened/closed/merged, your own comments)."
-		}
-	},
-	"help": {
-		"text": "DevPinger aggregates notifications from GitHub and Jira into Telegram.\n\nCommands:\n/start — connect services\n/repos — pick GitHub repositories to watch\n/projects — pick Jira projects to watch\n/mutes — list and manage your mute rules\n/recent — last 20 events\n/stats — your activity summary\n/lang — switch language"
-	},
-	"sources": {
-		"header": "📡 <b>Supported sources</b>",
-		"github": "<b>GitHub</b> — issues, PRs, reviews, comments, releases. Connect via /start.",
-		"jira": "<b>Jira Cloud</b> — issues, comments, status transitions, mentions. Connect via /start."
-	},
 	"settings": {
-		"comingSoon": "Settings menu — coming soon.",
 		"langPrompt": "Choose your language:",
 		"langChanged": "Language switched to English.",
 		"notifySelfOn": "📢 Own actions: ON",
