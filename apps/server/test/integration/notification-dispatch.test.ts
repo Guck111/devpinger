@@ -6,9 +6,7 @@ import { createTestUser, insertEvent } from "./helpers/seed.js"
 const integrationDbUrl = process.env.INTEGRATION_DB_URL
 const skip = !integrationDbUrl
 
-// biome-ignore lint/style/noNamespaceImport: dynamic typeof-import needs single-line form
 type NotificationsMod = typeof import("../../../worker/src/queues/notifications.js")
-// biome-ignore lint/style/noNamespaceImport: dynamic typeof-import needs single-line form
 type RegistriesMod = typeof import("../../../worker/src/registries.js")
 
 describe.skipIf(skip)("notification dispatch (worker processor)", () => {

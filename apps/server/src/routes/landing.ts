@@ -39,7 +39,10 @@ export const landingRoutes = async (app: FastifyInstance) => {
 						source: parsed.data.source ?? null,
 					})
 					.onConflictDoNothing({ target: landingSubscribers.email })
-				logger.info({ email: parsed.data.email, source: parsed.data.source }, "landing.subscribe.ok")
+				logger.info(
+					{ email: parsed.data.email, source: parsed.data.source },
+					"landing.subscribe.ok",
+				)
 				return reply.code(200).send({ ok: true })
 			} catch (err) {
 				logger.error({ err }, "landing.subscribe.error")
