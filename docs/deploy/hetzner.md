@@ -129,14 +129,26 @@ deploys do not drop in-flight webhooks or notification jobs.
 
 ## 9. Backups
 
-Daily snapshot of the postgres volume:
+Run `infra/backup-postgres.sh` daily via cron. It uses `pg_dump -Fc`
+(safe on a running database, unlike `tar` of the volume which can
+produce a corrupt cold copy) and keeps the last 30 dumps locally.
 
 ```sh
-docker run --rm \
-  -v devpinger_postgres_data:/data \
-  -v /home/devpinger/backups:/backup \
-  alpine \
-  tar czf /backup/postgres-$(date +%F).tar.gz -C /data .
+sudo cp /opt/devpinger/infra/backup-postgres.sh /usr/local/bin/devpinger-backup
+chmod +x /usr/local/bin/devpinger-backup
+
+# 03:00 UTC nightly. Override container/db names via env if your stack differs.
+(crontab -l 2>/dev/null; echo "0 3 * * * /usr/local/bin/devpinger-backup >> /var/log/devpinger-backup.log 2>&1") | crontab -
 ```
 
-Plug that into cron + offsite copy (rclone, restic) to taste.
+**Critical:** also back up your `.env` separately — losing
+`ENCRYPTION_KEY` means no user can decrypt their stored OAuth tokens,
+forcing every user to reconnect. Push dumps off-host (rclone to S3-
+compatible storage, or restic) so a host loss doesn't take both
+production data AND its only copy.
+
+Test the restore at least once on a throwaway compose stack:
+
+```sh
+./infra/restore-postgres.sh /opt/devpinger/backups/devpinger-<timestamp>.dump
+```

@@ -134,10 +134,18 @@ no-op.
 ## Backups
 
 Postgres holds users, connections (encrypted OAuth tokens), event
-history, and mute rules. Daily `pg_dump` → S3 is enough for most
-deployments. The encryption key is required to decrypt the
-connections; back it up separately so a DB-only leak doesn't expose
-tokens.
+history, and mute rules. Use `infra/backup-postgres.sh` for nightly
+`pg_dump -Fc` dumps with 30-day retention; `infra/restore-postgres.sh`
+restores from one. Cron snippet:
+
+```sh
+0 3 * * * /opt/devpinger/infra/backup-postgres.sh >> /var/log/devpinger-backup.log 2>&1
+```
+
+The encryption key is required to decrypt the connections; back it up
+separately so a DB-only leak doesn't expose tokens, and so a host loss
+doesn't leave the database undecryptable. Test restore at least once on
+a throwaway compose stack — an untested backup is a wish, not a backup.
 
 ## Webhook secrets
 
