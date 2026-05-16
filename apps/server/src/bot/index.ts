@@ -40,6 +40,7 @@ import { handleProjectAdd, handleProjectRemove, handleProjectsCommand } from "./
 import { handleRepoAdd, handleRepoRemove, handleReposCommand } from "./repos.js"
 import { handleHelpCommand } from "./help.js"
 import { renderConnectionsSection } from "./hub/connections.js"
+import { renderEventsSection } from "./hub/events.js"
 import { registerHub } from "./hub/index.js"
 import { handleStatusCommand } from "./status.js"
 
@@ -88,7 +89,11 @@ registerHub(bot, {
 		})
 	},
 	events: async (ctx) => {
-		await ctx.reply(ctx.t("hubV2.events.title"), { parse_mode: "HTML" })
+		const rendered = renderEventsSection(ctx.t)
+		await ctx.reply(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
 	},
 	settings: async (ctx) => {
 		await ctx.reply(ctx.t("hubV2.settings.title"), { parse_mode: "HTML" })
@@ -136,6 +141,21 @@ bot.callbackQuery("hub:close", async (ctx) => {
 
 bot.callbackQuery("hub:noop", async (ctx) => {
 	await ctx.answerCallbackQuery()
+})
+
+bot.callbackQuery("hub:events:recent", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	await handleRecentCommand(ctx as unknown as BotContext)
+})
+
+bot.callbackQuery("hub:events:stats", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	await handleStatsCommand(ctx as unknown as BotContext)
+})
+
+bot.callbackQuery("hub:events:mutes", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	await handleMutesCommand(ctx as unknown as BotContext)
 })
 
 const buildStartMenu = async (ctx: BotContext): Promise<InlineKeyboard> => {
@@ -249,7 +269,7 @@ bot.callbackQuery(/^proj:rm:(.+)$/, async (ctx) => {
 	if (subId) await handleProjectRemove(ctx, subId)
 })
 
-bot.command("mutes", async (ctx) => {
+export const handleMutesCommand = async (ctx: BotContext): Promise<void> => {
 	const telegramId = ctx.from?.id
 	if (!telegramId) return
 	const user = await getUserByTelegramId(db, telegramId)
@@ -266,9 +286,11 @@ bot.command("mutes", async (ctx) => {
 		kb.text(`🗑 ${label}`, `mute:rm:${m.id}`).row()
 	}
 	await ctx.reply(header, { reply_markup: kb })
-})
+}
 
-bot.command("recent", async (ctx) => {
+bot.command("mutes", handleMutesCommand)
+
+export const handleRecentCommand = async (ctx: BotContext): Promise<void> => {
 	const telegramId = ctx.from?.id
 	if (!telegramId) return
 	const user = await getUserByTelegramId(db, telegramId)
@@ -281,9 +303,11 @@ bot.command("recent", async (ctx) => {
 	const header = ctx.t("history.recentHeader", { count: list.length })
 	const lines = list.map((e) => `• [${e.source}] ${e.title}${e.scope ? ` — ${e.scope}` : ""}`)
 	await ctx.reply(`${header}\n${lines.join("\n")}`)
-})
+}
 
-bot.command("stats", async (ctx) => {
+bot.command("recent", handleRecentCommand)
+
+export const handleStatsCommand = async (ctx: BotContext): Promise<void> => {
 	const telegramId = ctx.from?.id
 	if (!telegramId) return
 	const user = await getUserByTelegramId(db, telegramId)
@@ -306,7 +330,9 @@ bot.command("stats", async (ctx) => {
 		}),
 		{ parse_mode: "HTML" },
 	)
-})
+}
+
+bot.command("stats", handleStatsCommand)
 
 bot.command("lang", async (ctx) => {
 	const kb = new InlineKeyboard()
