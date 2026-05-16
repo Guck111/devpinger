@@ -1,0 +1,31 @@
+# TLS-terminating reverse proxy in front of the Fastify server.
+# Let's Encrypt certificates are issued automatically on first request
+# (port 80 must be reachable from the public internet for HTTP-01).
+
+{
+	email arseni@devpinger.com
+	# Uncomment for staging during DNS/TLS troubleshooting:
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+api.devpinger.com {
+	encode gzip zstd
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		# Caddy's default cert headers strip; we don't want server identification leaked
+		-Server
+	}
+
+	# Surface only the routes that should be public.
+	# Webhooks, OAuth callbacks, Telegram, landing subscribe, health.
+	@public path /health /ready /v1/landing/* /webhooks/* /oauth/* /telegram/*
+	handle @public {
+		reverse_proxy server:3001
+	}
+
+	# Everything else returns 404 to avoid exposing internal paths.
+	respond 404
+}

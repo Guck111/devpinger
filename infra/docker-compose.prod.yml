@@ -1,0 +1,65 @@
+# Production stack for DevPinger.
+# Run from repo root:  docker compose -f infra/docker-compose.prod.yml --env-file .env.prod up -d --build
+# Tear down:           docker compose -f infra/docker-compose.prod.yml down
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  server:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+      target: server
+    image: devpinger-server:latest
+    restart: unless-stopped
+    env_file: ../.env.prod
+    environment:
+      REDIS_URL: redis://redis:6379
+      PORT: "3001"
+    depends_on:
+      redis:
+        condition: service_healthy
+    expose:
+      - "3001"
+
+  worker:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+      target: worker
+    image: devpinger-worker:latest
+    restart: unless-stopped
+    env_file: ../.env.prod
+    environment:
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - server
+
+volumes:
+  redis-data:
+  caddy-data:
+  caddy-config:
