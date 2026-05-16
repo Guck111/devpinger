@@ -1,4 +1,5 @@
-import { boolean, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
+import { sql } from "drizzle-orm"
+import { boolean, index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
 import { providerEnum } from "./connections.js"
 import { users } from "./users.js"
 
@@ -28,6 +29,12 @@ export const subscriptions = pgTable(
 			table.provider,
 			table.providerScopeId,
 		),
+		// Inbound webhooks scan WHERE provider='X' AND is_active=true and then
+		// HMAC-verify each row's secret. Partial index keeps that scan to the
+		// O(N) slice of active rows rather than a full table sweep.
+		activeByProviderIdx: index("subscriptions_active_by_provider_idx")
+			.on(table.provider)
+			.where(sql`${table.isActive} = true`),
 	}),
 )
 

@@ -1,0 +1,1 @@
+CREATE INDEX "subscriptions_active_by_provider_idx" ON "subscriptions" USING btree ("provider") WHERE "subscriptions"."is_active" = true;
