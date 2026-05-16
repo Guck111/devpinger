@@ -95,6 +95,14 @@ const zeroStats = (): UserStats => ({
 	bySource: { github: 0, jira: 0 },
 })
 
+export const countEventsLast7d = async (db: typeof Db, userId: string): Promise<number> => {
+	const [row] = await db
+		.select({ n: sql<number>`count(*)` })
+		.from(events)
+		.where(and(eq(events.userId, userId), sql`${events.createdAt} > now() - interval '7 days'`))
+	return Number(row?.n ?? 0)
+}
+
 export const userStats = async (
 	db: typeof Db,
 	userId: string,

@@ -1,54 +1,69 @@
 {
-	"start": {
-		"welcome": "Hi @{username}! Welcome to DevPinger.\n\nConnect a service to start receiving notifications:",
-		"welcomeFallback": "Hi! Welcome to DevPinger.\n\nConnect a service to start receiving notifications:",
-		"connectedGithub": "✅ GitHub connected as @{login}. Send /repos to pick what to watch.",
-		"connectedJira": "✅ Jira connected as {login}. Issues, comments, and status changes will show up here."
+	"metadata": {
+		"short": "GitHub/Jira notifications in Telegram with one-tap actions.",
+		"long": "DevPinger aggregates notifications from GitHub and Jira into a single Telegram chat: PRs, reviews, comments, failed workflows, Jira issues and status changes. One-tap actions — ✅ Approve, 💬 Comment, 🚀 Merge, 🔕 Mute, ⏰ Snooze. No open tabs, no noisy channels — only what matters to you."
 	},
-	"menu": {
-		"connectGithub": "🔗 Connect GitHub",
-		"connectJira": "🔗 Connect Jira",
-		"connectedHint": "{provider} is already connected. To disconnect, revoke DevPinger's access in your {provider} account settings (Applications / OAuth apps).",
+	"replyKeyboard": {
+		"connections": "📡 Connections",
+		"events": "🔔 Events",
 		"settings": "⚙️ Settings",
-		"help": "❓ Help",
-		"language": "🌐 Language"
+		"help": "❓ Help"
 	},
-	"mainKeyboard": {
-		"connections": "📡 Sources",
-		"settings": "⚙️ Settings"
-	},
-	"hub": {
-		"title": "Main menu — pick a section:",
-		"back": "← Back",
-		"close": "✖ Close",
+	"hubV2": {
 		"connections": {
-			"title": "📡 <b>Sources</b>\nWhere events come from.",
-			"repos": "📁 GitHub repositories",
-			"projects": "📋 Jira projects"
+			"title": "📡 <b>Connections</b>\nWhere events come from.",
+			"githubConnect": "🐙 Connect GitHub",
+			"githubConnected": "✅ GitHub: @{login}",
+			"jiraConnect": "🟦 Connect Jira",
+			"jiraConnected": "✅ Jira: {login}",
+			"openRepos": "📁 Repositories",
+			"openProjects": "📋 Projects",
+			"disconnect": "🔌 Disconnect",
+			"disconnectedGithub": "🔌 GitHub disconnected. Webhooks on your repos stay — remove them in Settings → Webhooks on each repo.",
+			"disconnectedJira": "🔌 Jira disconnected."
+		},
+		"events": {
+			"title": "🔔 <b>Events</b>",
+			"recent": "📜 Last 20",
+			"stats": "📊 Stats",
+			"mutes": "🔕 Mutes"
 		},
 		"settings": {
 			"title": "⚙️ <b>Settings</b>",
+			"lang": "🌐 Language: {current}",
 			"notifications": "🔔 Notifications",
-			"lang": "🌐 Language",
-			"stats": "📊 Stats"
+			"account": "👤 Account"
 		},
 		"notifications": {
-			"title": "🔔 <b>Notifications</b>\nWhat lands in your personal chat.",
+			"title": "🔔 <b>Notifications</b>",
 			"selfActionsOn": "📢 Own actions: ON",
-			"selfActionsOff": "🔕 Own actions: OFF (default)",
-			"selfActionsHint": "When OFF, the bot doesn't send you events that you triggered yourself (your own PR opened/closed/merged, your own comments)."
-		}
+			"selfActionsOff": "🔕 Own actions: OFF",
+			"selfActionsHint": "When OFF, the bot won't notify you about events you triggered yourself."
+		},
+		"account": {
+			"title": "👤 <b>Account</b>",
+			"export": "📤 Export data",
+			"delete": "🗑 Delete account"
+		},
+		"back": "← Back",
+		"close": "✖ Close",
+		"mutesAdded": "🔕 Mute added. Manage — Settings → 🔕 Mutes."
 	},
-	"help": {
-		"text": "DevPinger aggregates notifications from GitHub and Jira into Telegram.\n\nCommands:\n/start — connect services\n/repos — pick GitHub repositories to watch\n/projects — pick Jira projects to watch\n/mutes — list and manage your mute rules\n/recent — last 20 events\n/stats — your activity summary\n/lang — switch language"
+	"onboarding": {
+		"welcome": "Hi, {username}! I'm <b>DevPinger</b>.\n\nI aggregate notifications from <b>GitHub</b> and <b>Jira</b> into a single Telegram chat and give you one-tap actions: ✅ Approve, 💬 Comment, 🚀 Merge, 🔕 Mute.\n\nNo open tabs, no noisy channels — only what matters.",
+		"welcomeFallback": "Hi! I'm <b>DevPinger</b>.\n\nI aggregate notifications from <b>GitHub</b> and <b>Jira</b> into a single Telegram chat with one-tap actions.",
+		"step1Title": "<b>Step 1 of 3 — connect a provider</b>",
+		"step1Body": "One is enough, you can add the other later.",
+		"step2Title": "✅ {provider} connected.\n\n<b>Step 2 of 3 — pick what to watch</b>",
+		"step3Title": "🎉 Done! {target} is connected.\n\n<b>Step 3 of 3 — wait for the first event</b>",
+		"step3Body": "Controls live in the buttons below. Need help? Tap <b>❓ Help</b>.",
+		"firstEvent": "👋 Your first event! The buttons above are actions — one tap does the thing."
 	},
-	"sources": {
-		"header": "📡 <b>Supported sources</b>",
-		"github": "<b>GitHub</b> — issues, PRs, reviews, comments, releases. Connect via /start.",
-		"jira": "<b>Jira Cloud</b> — issues, comments, status transitions, mentions. Connect via /start."
+	"helpV2": {
+		"text": "🤖 <b>What I do</b>\nI collect events from GitHub and Jira and send them here — with action buttons.\n\n📡 <b>Supported</b>\n<b>GitHub:</b> PRs, issues, reviews, comments, releases, failed workflows.\n<b>Jira:</b> issues, status transitions, comments, mentions.\n\n🚀 <b>How to use</b>\n1. /start — connect a provider.\n2. /repos or /projects — pick what to watch.\n3. Wait for the first event — action buttons will be inline.\n\n🔕 <b>Mute noise</b>\n/mutes — silence a whole source, repo, project, or event type.\n\n⚙️ <b>Controls</b>\nButtons below: 📡 Connections · 🔔 Events · ⚙️ Settings · ❓ Help"
 	},
+	"startAdaptive": "Welcome back, {username}!\n\n📡 {connectionsCount} {connectionsWord} · 📊 {eventsLast7d} events in the last 7 days\n\nPick a section below or hit /help.",
 	"settings": {
-		"comingSoon": "Settings menu — coming soon.",
 		"langPrompt": "Choose your language:",
 		"langChanged": "Language switched to English.",
 		"notifySelfOn": "📢 Own actions: ON",

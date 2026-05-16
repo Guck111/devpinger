@@ -64,7 +64,49 @@ jobs:
         run: pnpm --filter @devpinger/db exec drizzle-kit check
 
       - name: Test
+        env:
+          INTEGRATION_DB_URL: postgres://devpinger:devpinger@localhost:5432/devpinger_ci
+          INTEGRATION_REDIS_URL: redis://localhost:6379
         run: pnpm -r test
 
       - name: Build
         run: pnpm -r build
+
+  deploy:
+    needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply migrations to production DB
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: pnpm db:migrate
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+            cd /opt/devpinger
+            git fetch --tags --prune
+            git reset --hard origin/main
+            bash infra/deploy.sh

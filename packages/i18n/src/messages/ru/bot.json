@@ -1,54 +1,69 @@
 {
-	"start": {
-		"welcome": "Привет, @{username}! Добро пожаловать в DevPinger.\n\nПодключи сервис, чтобы начать получать уведомления:",
-		"welcomeFallback": "Привет! Добро пожаловать в DevPinger.\n\nПодключи сервис, чтобы начать получать уведомления:",
-		"connectedGithub": "✅ GitHub подключён как @{login}. Отправь /repos, чтобы выбрать репозитории.",
-		"connectedJira": "✅ Jira подключён как {login}. Issues, комментарии и переходы статусов будут прилетать сюда."
+	"metadata": {
+		"short": "Уведомления GitHub/Jira в Telegram с действиями одной кнопкой.",
+		"long": "DevPinger собирает уведомления из GitHub и Jira в один Telegram-чат: PR, ревью, комментарии, упавшие workflow, Jira-issues и смену статусов. Действия по одной кнопке — ✅ Approve, 💬 Comment, 🚀 Merge, 🔕 Mute, ⏰ Snooze. Без открытых вкладок и шумных каналов — только то, что важно для тебя."
 	},
-	"menu": {
-		"connectGithub": "🔗 Подключить GitHub",
-		"connectJira": "🔗 Подключить Jira",
-		"connectedHint": "{provider} уже подключён. Чтобы отвязать — отзови доступ DevPinger в настройках своего аккаунта {provider} (Applications / OAuth apps).",
+	"replyKeyboard": {
+		"connections": "📡 Подключения",
+		"events": "🔔 События",
 		"settings": "⚙️ Настройки",
-		"help": "❓ Помощь",
-		"language": "🌐 Язык"
+		"help": "❓ Помощь"
 	},
-	"mainKeyboard": {
-		"connections": "📡 Источники",
-		"settings": "⚙️ Настройки"
-	},
-	"hub": {
-		"title": "Главное меню — выбери раздел:",
-		"back": "← Назад",
-		"close": "✖ Закрыть",
+	"hubV2": {
 		"connections": {
-			"title": "📡 <b>Источники</b>\nОткуда приходят события.",
-			"repos": "📁 Репозитории GitHub",
-			"projects": "📋 Проекты Jira"
+			"title": "📡 <b>Подключения</b>\nОткуда приходят события.",
+			"githubConnect": "🐙 Подключить GitHub",
+			"githubConnected": "✅ GitHub: @{login}",
+			"jiraConnect": "🟦 Подключить Jira",
+			"jiraConnected": "✅ Jira: {login}",
+			"openRepos": "📁 Репозитории",
+			"openProjects": "📋 Проекты",
+			"disconnect": "🔌 Отключить",
+			"disconnectedGithub": "🔌 GitHub отключён. Webhooks в репозиториях остаются — удали их в Settings → Webhooks каждого репо.",
+			"disconnectedJira": "🔌 Jira отключена."
+		},
+		"events": {
+			"title": "🔔 <b>События</b>",
+			"recent": "📜 Последние 20",
+			"stats": "📊 Статистика",
+			"mutes": "🔕 Мьюты"
 		},
 		"settings": {
 			"title": "⚙️ <b>Настройки</b>",
+			"lang": "🌐 Язык: {current}",
 			"notifications": "🔔 Уведомления",
-			"lang": "🌐 Язык",
-			"stats": "📊 Статистика"
+			"account": "👤 Аккаунт"
 		},
 		"notifications": {
-			"title": "🔔 <b>Уведомления</b>\nЧто прилетает в личный чат.",
+			"title": "🔔 <b>Уведомления</b>",
 			"selfActionsOn": "📢 Свои действия: ВКЛ",
-			"selfActionsOff": "🔕 Свои действия: ВЫКЛ (по умолчанию)",
-			"selfActionsHint": "Когда ВЫКЛ, бот не присылает события, которые ты сам же и триггерил (свои PR opened/closed/merged, свои комменты)."
-		}
+			"selfActionsOff": "🔕 Свои действия: ВЫКЛ",
+			"selfActionsHint": "Когда ВЫКЛ, бот не присылает события, которые ты сам же и триггерил."
+		},
+		"account": {
+			"title": "👤 <b>Аккаунт</b>",
+			"export": "📤 Экспорт данных",
+			"delete": "🗑 Удалить аккаунт"
+		},
+		"back": "← Назад",
+		"close": "✖ Закрыть",
+		"mutesAdded": "🔕 Мьют добавлен. Управление — Настройки → 🔕 Мьюты."
 	},
-	"help": {
-		"text": "DevPinger собирает уведомления из GitHub и Jira в Telegram.\n\nКоманды:\n/start — подключить сервисы\n/repos — выбрать репозитории GitHub\n/projects — выбрать проекты Jira\n/mutes — список и управление мьютами\n/recent — последние 20 событий\n/stats — сводка по активности\n/lang — сменить язык"
+	"onboarding": {
+		"welcome": "Привет, {username}! Я <b>DevPinger</b>.\n\nСобираю уведомления из <b>GitHub</b> и <b>Jira</b> в один Telegram-чат и даю действия одной кнопкой: ✅ Approve, 💬 Comment, 🚀 Merge, 🔕 Mute.\n\nБез открытых вкладок и шумных каналов — только то, что важно.",
+		"welcomeFallback": "Привет! Я <b>DevPinger</b>.\n\nСобираю уведомления из <b>GitHub</b> и <b>Jira</b> в один Telegram-чат и даю действия одной кнопкой.",
+		"step1Title": "<b>Шаг 1 из 3 — подключи провайдер</b>",
+		"step1Body": "Достаточно одного, можно оба позже.",
+		"step2Title": "✅ {provider} подключён.\n\n<b>Шаг 2 из 3 — выбери, за чем следить</b>",
+		"step3Title": "🎉 Готово! {target} подключено.\n\n<b>Шаг 3 из 3 — жди первое событие</b>",
+		"step3Body": "Управление — кнопки внизу. Если что — <b>❓ Помощь</b>.",
+		"firstEvent": "👋 Первое событие! Кнопки выше — это действия, которые сразу делают что нужно."
 	},
-	"sources": {
-		"header": "📡 <b>Поддерживаемые источники</b>",
-		"github": "<b>GitHub</b> — issues, PR, ревью, комментарии, релизы. Подключение через /start.",
-		"jira": "<b>Jira Cloud</b> — issues, комментарии, переходы статусов, упоминания. Подключение через /start."
+	"helpV2": {
+		"text": "🤖 <b>Что я делаю</b>\nСобираю события из GitHub и Jira и шлю их сюда — с кнопками действий.\n\n📡 <b>Поддерживаемое</b>\n<b>GitHub:</b> PR, issue, ревью, комментарии, релизы, упавшие workflow.\n<b>Jira:</b> issues, переходы статусов, комментарии, упоминания.\n\n🚀 <b>Как пользоваться</b>\n1. /start — подключи провайдер.\n2. /repos или /projects — выбери, за чем следить.\n3. Жди первое событие — там будут кнопки действий.\n\n🔕 <b>Лишний шум</b>\n/mutes — отключи целый источник, репо, проект или тип события.\n\n⚙️ <b>Управление</b>\nКнопки внизу: 📡 Подключения · 🔔 События · ⚙️ Настройки · ❓ Помощь"
 	},
+	"startAdaptive": "С возвращением, {username}!\n\n📡 {connectionsCount} {connectionsWord} · 📊 {eventsLast7d} событий за 7 дней\n\nВыбирай раздел внизу или жми /help.",
 	"settings": {
-		"comingSoon": "Меню настроек — скоро.",
 		"langPrompt": "Выбери язык:",
 		"langChanged": "Язык переключён на русский.",
 		"notifySelfOn": "📢 Свои действия: ВКЛ",

@@ -96,10 +96,12 @@ export const deleteConnection = async (
 	db: typeof Db,
 	userId: string,
 	provider: OauthProvider,
-): Promise<void> => {
-	await db
+): Promise<{ removed: boolean }> => {
+	const result = await db
 		.delete(connections)
 		.where(and(eq(connections.userId, userId), eq(connections.provider, provider)))
+		.returning({ id: connections.id })
+	return { removed: result.length > 0 }
 }
 
 export const updateConnectionCredentials = async (

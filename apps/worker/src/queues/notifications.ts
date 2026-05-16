@@ -5,15 +5,16 @@ import {
 	subscriptions as subscriptionsTable,
 	users as usersTable,
 } from "@devpinger/db"
-import type { Locale } from "@devpinger/i18n"
+import { type Locale, botMessages } from "@devpinger/i18n"
 import { Worker } from "bullmq"
 import { eq, sql } from "drizzle-orm"
 import { GrammyError } from "grammy"
 import type { Redis } from "ioredis"
 import { db } from "../db.js"
 import { logger } from "../logger.js"
-import { destinationRegistry } from "../registries.js"
+import { destinationRegistry, telegramClient } from "../registries.js"
 import { addBreadcrumb, captureError } from "../sentry.js"
+import { maybeMarkFirstEvent } from "../services/first-event.js"
 import { decideDelivery } from "./decide-delivery.js"
 
 export interface NotificationJob {
@@ -121,6 +122,19 @@ export const handleNotificationJob = async (
 		},
 		"notification delivered",
 	)
+
+	try {
+		const { shouldSendFollowUp } = await maybeMarkFirstEvent(db, jobData.userId)
+		if (shouldSendFollowUp) {
+			await telegramClient.sendMessage({
+				chatId: jobData.telegramChatId,
+				text: botMessages[lang].onboarding.firstEvent,
+				parseMode: "HTML",
+			})
+		}
+	} catch (err) {
+		logger.warn({ err, userId: jobData.userId }, "first-event follow-up failed")
+	}
 }
 
 // GrammyError 403 means the user blocked the bot or deactivated their account.

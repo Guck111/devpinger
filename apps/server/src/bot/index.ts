@@ -34,8 +34,20 @@ import {
 	handleViewDiff,
 	submitPendingComment,
 } from "./actions.js"
+import { handleHelpCommand } from "./help.js"
+import { renderConnectionsSection } from "./hub/connections.js"
+import { renderEventsSection } from "./hub/events.js"
+import { registerHub } from "./hub/index.js"
+import { mainReplyKeyboard } from "./hub/keyboard.js"
+import {
+	renderAccountSubsection,
+	renderNotificationsSubsection,
+	renderSettingsSection,
+	toggleNotifySelf,
+} from "./hub/settings.js"
 import { type I18nFlavor, createI18nMiddleware } from "./i18n.js"
 import { dbLocaleResolver } from "./locale-resolver.js"
+import { renderAdaptiveStart, renderOnboardingStep1, renderOnboardingStep2 } from "./onboarding.js"
 import { handleProjectAdd, handleProjectRemove, handleProjectsCommand } from "./projects.js"
 import { handleRepoAdd, handleRepoRemove, handleReposCommand } from "./repos.js"
 import { handleStatusCommand } from "./status.js"
@@ -62,58 +74,211 @@ bot.use(async (ctx, next) => {
 	await next()
 })
 
-const buildStartMenu = async (ctx: BotContext): Promise<InlineKeyboard> => {
-	const tgId = ctx.from?.id
-	if (!tgId) return new InlineKeyboard().text(ctx.t("menu.help"), "help")
-	const sig = (provider: "github" | "jira") =>
-		signTg(tgId, `oauth-${provider}-start`, env.ENCRYPTION_KEY)
-	const oauthUrl = (provider: "github" | "jira") =>
-		`${env.PUBLIC_BASE_URL}/oauth/${provider}/start?sig=${sig(provider)}`
-
-	const user = await getUserByTelegramId(db, tgId)
-	const connected = user
-		? await listConnectedProviders(db, user.id)
-		: new Map<"github" | "jira", { providerUsername: string | null }>()
-
-	const kb = new InlineKeyboard()
-	const addRow = (provider: "github" | "jira", label: string, displayName: string) => {
-		const entry = connected.get(provider)
-		if (entry) {
-			const handle = entry.providerUsername ? `: @${entry.providerUsername}` : ""
-			kb.text(`✅ ${displayName}${handle}`, `oauth:info:${provider}`).row()
-		} else {
-			kb.url(label, oauthUrl(provider)).row()
-		}
-	}
-	addRow("github", ctx.t("menu.connectGithub"), "GitHub")
-	addRow("jira", ctx.t("menu.connectJira"), "Jira")
-	return kb.text(ctx.t("menu.language"), "lang").text(ctx.t("menu.help"), "help")
+const oauthUrlFor = (telegramId: number) => (provider: "github" | "jira") => {
+	const sig = signTg(telegramId, `oauth-${provider}-start`, env.ENCRYPTION_KEY)
+	return `${env.PUBLIC_BASE_URL}/oauth/${provider}/start?sig=${sig}`
 }
+
+registerHub(bot, {
+	connections: async (ctx) => {
+		const tgId = ctx.from?.id
+		if (!tgId) return
+		const user = await getUserByTelegramId(db, tgId)
+		if (!user) return
+		const rendered = await renderConnectionsSection({
+			db,
+			userId: user.id,
+			t: ctx.t,
+			oauthUrl: oauthUrlFor(tgId),
+		})
+		await ctx.reply(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	},
+	events: async (ctx) => {
+		const rendered = renderEventsSection(ctx.t)
+		await ctx.reply(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	},
+	settings: async (ctx) => {
+		const rendered = renderSettingsSection(ctx.t, ctx.locale)
+		await ctx.reply(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	},
+	help: async (ctx) => {
+		await ctx.reply(ctx.t("helpV2.text"), { parse_mode: "HTML" })
+	},
+})
+
+bot.callbackQuery(/^hub:conn:open:(repos|projects)$/, async (ctx) => {
+	await ctx.answerCallbackQuery()
+	const target = ctx.match?.[1]
+	if (target === "repos") {
+		await handleReposCommand(ctx as unknown as Parameters<typeof handleReposCommand>[0])
+	} else if (target === "projects") {
+		await handleProjectsCommand(ctx as unknown as Parameters<typeof handleProjectsCommand>[0])
+	}
+})
+
+bot.callbackQuery(/^hub:conn:disconnect:(github|jira)$/, async (ctx) => {
+	await ctx.answerCallbackQuery()
+	const provider = ctx.match?.[1] as "github" | "jira"
+	const tgId = ctx.from?.id
+	if (!tgId) return
+	const user = await getUserByTelegramId(db, tgId)
+	if (!user) return
+	const { deleteConnection } = await import("../services/connections.js")
+	const { removed } = await deleteConnection(db, user.id, provider)
+	if (!removed) return
+	const msgKey =
+		provider === "github"
+			? "hubV2.connections.disconnectedGithub"
+			: "hubV2.connections.disconnectedJira"
+	await ctx.reply(ctx.t(msgKey))
+})
+
+bot.callbackQuery("hub:close", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	try {
+		await ctx.deleteMessage()
+	} catch {
+		// best-effort
+	}
+})
+
+bot.callbackQuery("hub:noop", async (ctx) => {
+	await ctx.answerCallbackQuery()
+})
+
+bot.callbackQuery("hub:events:recent", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	await handleRecentCommand(ctx as unknown as BotContext)
+})
+
+bot.callbackQuery("hub:events:stats", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	await handleStatsCommand(ctx as unknown as BotContext)
+})
+
+bot.callbackQuery("hub:events:mutes", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	await handleMutesCommand(ctx as unknown as BotContext)
+})
+
+bot.callbackQuery("hub:open:settings", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	const rendered = renderSettingsSection(ctx.t, ctx.locale)
+	try {
+		await ctx.editMessageText(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	} catch {
+		await ctx.reply(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	}
+})
+
+bot.callbackQuery("hub:settings:lang", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	const kb = new InlineKeyboard()
+	for (const locale of SUPPORTED_LOCALES) {
+		kb.text(locale === "en" ? "English" : "Русский", `lang:set:${locale}`).row()
+	}
+	await ctx.reply(ctx.t("settings.langPrompt"), { reply_markup: kb })
+})
+
+bot.callbackQuery("hub:settings:notifications", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	const tgId = ctx.from?.id
+	if (!tgId) return
+	const user = await getUserByTelegramId(db, tgId)
+	if (!user) return
+	const rendered = renderNotificationsSubsection(ctx.t, user.notifySelfActions)
+	try {
+		await ctx.editMessageText(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	} catch {
+		await ctx.reply(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	}
+})
+
+bot.callbackQuery("hub:settings:notify_self:toggle", async (ctx) => {
+	const tgId = ctx.from?.id
+	if (!tgId) {
+		await ctx.answerCallbackQuery()
+		return
+	}
+	const user = await getUserByTelegramId(db, tgId)
+	if (!user) {
+		await ctx.answerCallbackQuery()
+		return
+	}
+	const next = await toggleNotifySelf(db, user.id)
+	await ctx.answerCallbackQuery({
+		text: next
+			? ctx.t("hubV2.notifications.selfActionsOn")
+			: ctx.t("hubV2.notifications.selfActionsOff"),
+	})
+	const rendered = renderNotificationsSubsection(ctx.t, next)
+	try {
+		await ctx.editMessageReplyMarkup({ reply_markup: rendered.keyboard })
+	} catch {
+		// best-effort
+	}
+})
+
+bot.callbackQuery("hub:settings:account", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	const rendered = renderAccountSubsection(ctx.t)
+	try {
+		await ctx.editMessageText(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	} catch {
+		await ctx.reply(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	}
+})
+
+bot.callbackQuery("hub:settings:account:export", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	await handleExportCommand(ctx as unknown as Parameters<typeof handleExportCommand>[0])
+})
+
+bot.callbackQuery("hub:settings:account:delete", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	await handleUnsubscribeCommand(ctx as unknown as Parameters<typeof handleUnsubscribeCommand>[0])
+})
 
 bot.command("start", async (ctx) => {
 	const payload = ctx.match?.toString().trim() ?? ""
+	const tgId = ctx.from?.id
 
 	if (payload === "connected_github" || payload === "connected_jira") {
 		const provider = payload === "connected_github" ? "github" : "jira"
-		const user = ctx.from?.id ? await getUserByTelegramId(db, ctx.from.id) : null
-		const connected = user
-			? await listConnectedProviders(db, user.id)
-			: new Map<"github" | "jira", { providerUsername: string | null }>()
-		const entry = connected.get(provider)
-		const login = entry?.providerUsername ?? ctx.from?.username ?? "you"
-		if (provider === "github") {
-			await ctx.reply(ctx.t("start.connectedGithub", { login }))
-			await handleReposCommand(ctx)
-		} else {
-			await ctx.reply(ctx.t("start.connectedJira", { login }))
-			await handleProjectsCommand(ctx)
-		}
+		const r = renderOnboardingStep2({ t: ctx.t, provider })
+		await ctx.reply(r.text, { parse_mode: "HTML", reply_markup: r.keyboard })
 		return
 	}
 
 	if (payload.startsWith("event_")) {
 		const eventId = payload.slice("event_".length)
-		const tgId = ctx.from?.id
 		if (!tgId) return
 		const user = await getUserByTelegramId(db, tgId)
 		if (!user) return
@@ -136,21 +301,44 @@ bot.command("start", async (ctx) => {
 		return
 	}
 
-	const username = ctx.from?.username
-	const text = username ? ctx.t("start.welcome", { username }) : ctx.t("start.welcomeFallback")
-	await ctx.reply(text, { reply_markup: await buildStartMenu(ctx) })
+	if (!tgId) return
+	const user = await getUserByTelegramId(db, tgId)
+	if (!user) return
+
+	const connectedCount = (await listConnectedProviders(db, user.id)).size
+	if (connectedCount === 0 && user.onboardingCompletedAt === null) {
+		const s1 = renderOnboardingStep1({
+			t: ctx.t,
+			username: ctx.from?.username ?? null,
+			githubOauthUrl: oauthUrlFor(tgId)("github"),
+			jiraOauthUrl: oauthUrlFor(tgId)("jira"),
+		})
+		await ctx.reply(s1.welcome, { parse_mode: "HTML" })
+		await ctx.reply(s1.step.text, {
+			parse_mode: "HTML",
+			reply_markup: s1.step.keyboard,
+		})
+		return
+	}
+
+	const text = await renderAdaptiveStart({
+		db,
+		userId: user.id,
+		t: ctx.t,
+		username: ctx.from?.username ?? null,
+		locale: ctx.locale,
+	})
+	await ctx.reply(text, {
+		parse_mode: "HTML",
+		reply_markup: {
+			keyboard: mainReplyKeyboard(ctx.t).build(),
+			resize_keyboard: true,
+			is_persistent: true,
+		},
+	})
 })
 
-bot.command("help", async (ctx) => {
-	await ctx.reply(ctx.t("help.text"))
-})
-
-bot.command("sources", async (ctx) => {
-	await ctx.reply(
-		[ctx.t("sources.header"), ctx.t("sources.github"), ctx.t("sources.jira")].join("\n\n"),
-		{ parse_mode: "HTML" },
-	)
-})
+bot.command("help", handleHelpCommand)
 
 bot.command("repos", handleReposCommand)
 bot.command("projects", handleProjectsCommand)
@@ -175,7 +363,7 @@ bot.callbackQuery(/^proj:rm:(.+)$/, async (ctx) => {
 	if (subId) await handleProjectRemove(ctx, subId)
 })
 
-bot.command("mutes", async (ctx) => {
+export const handleMutesCommand = async (ctx: BotContext): Promise<void> => {
 	const telegramId = ctx.from?.id
 	if (!telegramId) return
 	const user = await getUserByTelegramId(db, telegramId)
@@ -192,9 +380,11 @@ bot.command("mutes", async (ctx) => {
 		kb.text(`🗑 ${label}`, `mute:rm:${m.id}`).row()
 	}
 	await ctx.reply(header, { reply_markup: kb })
-})
+}
 
-bot.command("recent", async (ctx) => {
+bot.command("mutes", handleMutesCommand)
+
+export const handleRecentCommand = async (ctx: BotContext): Promise<void> => {
 	const telegramId = ctx.from?.id
 	if (!telegramId) return
 	const user = await getUserByTelegramId(db, telegramId)
@@ -207,9 +397,11 @@ bot.command("recent", async (ctx) => {
 	const header = ctx.t("history.recentHeader", { count: list.length })
 	const lines = list.map((e) => `• [${e.source}] ${e.title}${e.scope ? ` — ${e.scope}` : ""}`)
 	await ctx.reply(`${header}\n${lines.join("\n")}`)
-})
+}
 
-bot.command("stats", async (ctx) => {
+bot.command("recent", handleRecentCommand)
+
+export const handleStatsCommand = async (ctx: BotContext): Promise<void> => {
 	const telegramId = ctx.from?.id
 	if (!telegramId) return
 	const user = await getUserByTelegramId(db, telegramId)
@@ -232,7 +424,9 @@ bot.command("stats", async (ctx) => {
 		}),
 		{ parse_mode: "HTML" },
 	)
-})
+}
+
+bot.command("stats", handleStatsCommand)
 
 bot.command("lang", async (ctx) => {
 	const kb = new InlineKeyboard()
@@ -244,7 +438,7 @@ bot.command("lang", async (ctx) => {
 
 bot.command("notify_self", async (ctx) => {
 	const telegramId = ctx.from?.id
-	if (!telegramId || telegramId !== env.ADMIN_TELEGRAM_ID) return
+	if (!telegramId) return
 	const user = await getUserByTelegramId(db, telegramId)
 	if (!user) return
 	const arg = ctx.match?.toString().trim().toLowerCase()
@@ -288,13 +482,6 @@ bot.callbackQuery(/^lang:set:(en|ru)$/, async (ctx) => {
 			.where(eq(users.telegramId, telegramId))
 	}
 	await ctx.reply(target === "ru" ? "Язык переключён на русский." : "Language switched to English.")
-})
-
-bot.callbackQuery(/^oauth:info:(github|jira)$/, async (ctx) => {
-	await ctx.answerCallbackQuery()
-	const provider = ctx.match?.[1]
-	const name = provider === "github" ? "GitHub" : "Jira"
-	await ctx.reply(ctx.t("menu.connectedHint", { provider: name }))
 })
 
 bot.callbackQuery(/^act:approve:(.+)$/, async (ctx) => {
@@ -398,11 +585,18 @@ bot.callbackQuery(/^mute:create:(source|repo|project|event_type):([^:]+):(.+)$/,
 	} catch {
 		// best effort
 	}
+	if (created) {
+		try {
+			await ctx.reply(ctx.t("hubV2.mutesAdded"))
+		} catch {
+			// best-effort
+		}
+	}
 })
 
 bot.callbackQuery("help", async (ctx) => {
 	await ctx.answerCallbackQuery()
-	await ctx.reply(ctx.t("help.text"))
+	await ctx.reply(ctx.t("helpV2.text"), { parse_mode: "HTML" })
 })
 
 bot.callbackQuery("lang", async (ctx) => {
