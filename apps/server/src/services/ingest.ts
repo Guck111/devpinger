@@ -204,7 +204,13 @@ export const ingestWebhook = async (
 			await notificationsQueue.add(
 				"deliver",
 				{ eventId: persisted.id, userId: match.userId, telegramChatId, lang: userLang },
-				{ jobId: `deliver-${persisted.id}`, removeOnComplete: 1000, removeOnFail: 100 },
+				{
+					jobId: `deliver-${persisted.id}`,
+					attempts: 5,
+					backoff: { type: "exponential", delay: 2000 },
+					removeOnComplete: 1000,
+					removeOnFail: 100,
+				},
 			)
 		}
 		ingested.push({
