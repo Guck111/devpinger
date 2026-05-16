@@ -26,7 +26,7 @@ const replaceButton = (
 	)
 	return touched ? { inline_keyboard: rows } : null
 }
-import { getConnection } from "../services/connections.js"
+import { getFreshJiraConnection } from "../services/connections.js"
 import {
 	createSubscription,
 	deactivateSubscription,
@@ -72,7 +72,7 @@ export const handleProjectsCommand = async (ctx: CommandContext<BotContext>): Pr
 	if (!telegramId) return
 	const user = await getUserByTelegramId(db, telegramId)
 	if (!user) return
-	const connection = await getConnection(db, user.id, "jira")
+	const connection = await getFreshJiraConnection(db, user.id)
 	if (!connection) {
 		await ctx.reply(ctx.t("errors.unauthorized"))
 		return
@@ -128,7 +128,7 @@ export const handleProjectAdd = async (
 	if (!telegramId) return
 	const user = await getUserByTelegramId(db, telegramId)
 	if (!user) return
-	const connection = await getConnection(db, user.id, "jira")
+	const connection = await getFreshJiraConnection(db, user.id)
 	if (!connection) {
 		await ctx.answerCallbackQuery({ text: ctx.t("errors.unauthorized") })
 		return

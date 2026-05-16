@@ -8,7 +8,7 @@ import { logger } from "../logger.js"
 import { snoozeQueue } from "../queues.js"
 import { redisConnection } from "../queues.js"
 import { sourceRegistry } from "../registries.js"
-import { getConnection } from "../services/connections.js"
+import { getConnection, getFreshJiraConnection } from "../services/connections.js"
 import { addMute } from "../services/mutes.js"
 import type { OauthProvider } from "../services/oauth-state.js"
 import { clearPendingAction, setPendingAction } from "../services/pending-action.js"
@@ -72,7 +72,10 @@ const runProviderAction = async (
 	payloadExtra: Record<string, unknown> = {},
 ): Promise<boolean> => {
 	const provider = event.source as OauthProvider
-	const connection = await getConnection(db, event.userId, provider)
+	const connection =
+		provider === "jira"
+			? await getFreshJiraConnection(db, event.userId)
+			: await getConnection(db, event.userId, provider)
 	if (!connection) {
 		await replyError(ctx, "errors.reconnect", { provider })
 		return false
@@ -210,7 +213,10 @@ export const submitPendingComment = async (
 		return
 	}
 	const provider = event.source as OauthProvider
-	const connection = await getConnection(db, user.id, provider)
+	const connection =
+		provider === "jira"
+			? await getFreshJiraConnection(db, user.id)
+			: await getConnection(db, user.id, provider)
 	if (!connection) {
 		await ctx.reply(ctx.t("errors.reconnect", { provider }))
 		return

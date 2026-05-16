@@ -1,8 +1,11 @@
 import type { ConnectionCredentialsPayload } from "@devpinger/db"
 import { connections } from "@devpinger/db"
+import { refreshAccessToken as refreshJiraToken } from "@devpinger/sources-jira"
 import { and, eq, sql } from "drizzle-orm"
+import { env } from "../config.js"
 import { cipher } from "../crypto.js"
 import type { db as Db } from "../db.js"
+import { logger } from "../logger.js"
 import type { OauthProvider } from "./oauth-state.js"
 
 export interface UpsertConnectionInput {
@@ -109,4 +112,51 @@ export const updateConnectionCredentials = async (
 		.update(connections)
 		.set({ encryptedCredentials: encrypted, updatedAt: sql`now()` })
 		.where(eq(connections.id, id))
+}
+
+// Refresh window: if the access token expires within this many ms from now,
+// proactively call the refresh endpoint before using it.
+const JIRA_REFRESH_BUFFER_MS = 60_000
+
+// Resolve a Jira connection and refresh its access token if it has expired
+// (or is about to). Persists the new credentials before returning. If refresh
+// fails, returns the existing connection so the caller can surface a
+// reconnect prompt rather than crashing.
+export const getFreshJiraConnection = async (
+	db: typeof Db,
+	userId: string,
+): Promise<ResolvedConnection | null> => {
+	const conn = await getConnection(db, userId, "jira")
+	if (!conn) return null
+	const creds = conn.credentials as ConnectionCredentialsPayload & {
+		refreshToken?: string
+		expiresAt?: string
+	}
+	if (!creds.expiresAt) return conn
+	const expiresAtMs = Date.parse(creds.expiresAt)
+	if (!Number.isFinite(expiresAtMs)) return conn
+	if (Date.now() < expiresAtMs - JIRA_REFRESH_BUFFER_MS) return conn
+	if (!creds.refreshToken) {
+		logger.warn({ userId }, "jira connection has no refreshToken; user must reconnect")
+		return conn
+	}
+	try {
+		const fresh = await refreshJiraToken({
+			clientId: env.JIRA_OAUTH_CLIENT_ID,
+			clientSecret: env.JIRA_OAUTH_CLIENT_SECRET,
+			refreshToken: creds.refreshToken,
+		})
+		const updated: ConnectionCredentialsPayload = {
+			...creds,
+			accessToken: fresh.access_token,
+			refreshToken: fresh.refresh_token ?? creds.refreshToken,
+			expiresAt: new Date(Date.now() + fresh.expires_in * 1000).toISOString(),
+			scopes: fresh.scope ? fresh.scope.split(" ") : creds.scopes,
+		}
+		await updateConnectionCredentials(db, conn.id, updated)
+		return { ...conn, credentials: updated }
+	} catch (err) {
+		logger.error({ err, userId }, "jira token refresh failed")
+		return conn
+	}
 }
