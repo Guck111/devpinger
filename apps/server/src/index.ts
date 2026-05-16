@@ -1,5 +1,6 @@
 import { registerBotCommands } from "./bot/commands-menu.js"
 import { bot } from "./bot/index.js"
+import { registerBotMetadata } from "./bot/metadata.js"
 import { env } from "./config.js"
 import { logger } from "./logger.js"
 import { captureError, initSentry } from "./sentry.js"
@@ -24,6 +25,12 @@ const main = async () => {
 		await registerBotCommands(bot.api)
 	} catch (err) {
 		logger.warn({ err }, "failed to publish bot command menu")
+	}
+
+	try {
+		await registerBotMetadata(bot.api)
+	} catch (err) {
+		logger.warn({ err }, "failed to publish bot description")
 	}
 
 	const shouldUseWebhook = env.NODE_ENV === "production"
