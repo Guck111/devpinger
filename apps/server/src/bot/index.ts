@@ -39,6 +39,7 @@ import { dbLocaleResolver } from "./locale-resolver.js"
 import { handleProjectAdd, handleProjectRemove, handleProjectsCommand } from "./projects.js"
 import { handleRepoAdd, handleRepoRemove, handleReposCommand } from "./repos.js"
 import { handleHelpCommand } from "./help.js"
+import { registerHub } from "./hub/index.js"
 import { handleStatusCommand } from "./status.js"
 
 export type BotContext = Context & I18nFlavor
@@ -61,6 +62,21 @@ bot.use(async (ctx, next) => {
 		}
 	}
 	await next()
+})
+
+registerHub(bot, {
+	connections: async (ctx) => {
+		await ctx.reply(ctx.t("hubV2.connections.title"), { parse_mode: "HTML" })
+	},
+	events: async (ctx) => {
+		await ctx.reply(ctx.t("hubV2.events.title"), { parse_mode: "HTML" })
+	},
+	settings: async (ctx) => {
+		await ctx.reply(ctx.t("hubV2.settings.title"), { parse_mode: "HTML" })
+	},
+	help: async (ctx) => {
+		await ctx.reply(ctx.t("helpV2.text"), { parse_mode: "HTML" })
+	},
 })
 
 const buildStartMenu = async (ctx: BotContext): Promise<InlineKeyboard> => {
