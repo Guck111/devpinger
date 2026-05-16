@@ -220,7 +220,10 @@ export const handleRepoRemove = async (
 			const client = createGithubClient({ accessToken: connection.credentials.accessToken })
 			await removeRepoWebhook(client, { owner, repo, hookId })
 		} catch (err) {
-			logger.warn({ err, sub }, "github removeRepoWebhook failed; deactivating subscription anyway")
+			logger.warn(
+				{ err, subId: sub.id, scopeId: sub.providerScopeId },
+				"github removeRepoWebhook failed; deactivating subscription anyway",
+			)
 		}
 	}
 	await deactivateSubscription(db, sub.id)

@@ -8,6 +8,20 @@ export const logger = pino({
 	level,
 	name: "devpinger-worker",
 	base: { service: "worker", env: env.NODE_ENV },
+	redact: {
+		paths: [
+			"*.webhookSecret",
+			"*.accessToken",
+			"*.refreshToken",
+			"*.encryptedCredentials",
+			"*.client_secret",
+			"*.token",
+			"*.password",
+			"headers.authorization",
+			"headers.cookie",
+		],
+		censor: "[REDACTED]",
+	},
 	transport:
 		env.NODE_ENV === "development"
 			? { target: "pino-pretty", options: { colorize: true, translateTime: "SYS:HH:MM:ss" } }
