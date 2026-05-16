@@ -1,4 +1,31 @@
+import type { Bot } from "grammy"
 import type { Update } from "grammy/types"
+
+/**
+ * Grammy refuses to dispatch updates until `bot.init()` has fetched `getMe`.
+ * In tests we don't have a real Telegram backend, so we bypass init by
+ * setting `bot.botInfo` directly.
+ */
+export const seedBotInfo = (
+	bot: Bot<never> | Bot<object>,
+	overrides: Partial<{
+		id: number
+		username: string
+		first_name: string
+	}> = {},
+): void => {
+	;(bot as { botInfo: unknown }).botInfo = {
+		id: overrides.id ?? 999,
+		is_bot: true,
+		first_name: overrides.first_name ?? "DevPinger",
+		username: overrides.username ?? "dev_pinger_test_bot",
+		can_join_groups: true,
+		can_read_all_group_messages: false,
+		supports_inline_queries: false,
+		can_connect_to_business: false,
+		has_main_web_app: false,
+	}
+}
 
 type FakeUser = {
 	id: number
