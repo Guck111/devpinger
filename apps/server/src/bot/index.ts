@@ -34,10 +34,6 @@ import {
 	handleViewDiff,
 	submitPendingComment,
 } from "./actions.js"
-import { type I18nFlavor, createI18nMiddleware } from "./i18n.js"
-import { dbLocaleResolver } from "./locale-resolver.js"
-import { handleProjectAdd, handleProjectRemove, handleProjectsCommand } from "./projects.js"
-import { handleRepoAdd, handleRepoRemove, handleReposCommand } from "./repos.js"
 import { handleHelpCommand } from "./help.js"
 import { renderConnectionsSection } from "./hub/connections.js"
 import { renderEventsSection } from "./hub/events.js"
@@ -49,7 +45,11 @@ import {
 	renderSettingsSection,
 	toggleNotifySelf,
 } from "./hub/settings.js"
+import { type I18nFlavor, createI18nMiddleware } from "./i18n.js"
+import { dbLocaleResolver } from "./locale-resolver.js"
 import { renderAdaptiveStart, renderOnboardingStep1, renderOnboardingStep2 } from "./onboarding.js"
+import { handleProjectAdd, handleProjectRemove, handleProjectsCommand } from "./projects.js"
+import { handleRepoAdd, handleRepoRemove, handleReposCommand } from "./repos.js"
 import { handleStatusCommand } from "./status.js"
 
 export type BotContext = Context & I18nFlavor
