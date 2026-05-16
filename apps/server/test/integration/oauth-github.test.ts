@@ -5,9 +5,11 @@ import {
 	oauthStates as oauthStatesTable,
 } from "@devpinger/db"
 import { eq } from "drizzle-orm"
-import type { FastifyInstance } from "fastify"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import { mockGitHubOAuthExchange, mockGitHubUserApi } from "./helpers/nock-helpers.js"
+import {
+	mockGitHubOAuthExchange,
+	mockGitHubUserApi,
+} from "./helpers/nock-helpers.js"
 import { createTestUser } from "./helpers/seed.js"
 
 const integrationDbUrl = process.env.INTEGRATION_DB_URL
@@ -15,7 +17,7 @@ const skip = !integrationDbUrl
 
 describe.skipIf(skip)("OAuth GitHub callback", () => {
 	let db: ReturnType<typeof createDatabase>
-	let app: FastifyInstance
+	let app: Awaited<ReturnType<typeof import("../../src/server.js").createApp>>
 	let createOauthState: typeof import("../../src/services/oauth-state.js").createOauthState
 	let appModule: typeof import("../../src/server.js")
 
@@ -35,7 +37,10 @@ describe.skipIf(skip)("OAuth GitHub callback", () => {
 	it("creates an encrypted GitHub connection and redirects to bot", async () => {
 		const user = await createTestUser(db)
 
-		const state = await createOauthState(db, { userId: user.id, provider: "github" })
+		const state = await createOauthState(db, {
+			userId: user.id,
+			provider: "github",
+		})
 
 		const tokenExchange = mockGitHubOAuthExchange("ghp_new_access_token")
 		const userApi = mockGitHubUserApi({ username: "ghuser_test", id: 7777 })
