@@ -1,5 +1,8 @@
-import type { Translator } from "@devpinger/i18n"
+import type { Locale, Translator } from "@devpinger/i18n"
 import { InlineKeyboard } from "grammy"
+import type { db as Db } from "../db.js"
+import { listConnectedProviders } from "../services/connections.js"
+import { countEventsLast7d } from "../services/history.js"
 
 type InlineButton =
 	| { text: string; callback_data: string }
@@ -79,4 +82,36 @@ export const renderOnboardingStep3 = (
 	return {
 		text: `${t("onboarding.step3Title", { target })}\n\n${t("onboarding.step3Body")}`,
 	}
+}
+
+const pluralizeConnections = (n: number, locale: Locale): string => {
+	if (locale === "ru") {
+		const lastTwo = n % 100
+		const last = n % 10
+		if (lastTwo >= 11 && lastTwo <= 14) return "подключений"
+		if (last === 1) return "подключение"
+		if (last >= 2 && last <= 4) return "подключения"
+		return "подключений"
+	}
+	return n === 1 ? "connection" : "connections"
+}
+
+export interface RenderAdaptiveStartInput {
+	db: typeof Db
+	userId: string
+	t: Translator
+	username: string | null
+	locale: Locale
+}
+
+export const renderAdaptiveStart = async (input: RenderAdaptiveStartInput): Promise<string> => {
+	const { db, userId, t, username, locale } = input
+	const connectionsCount = (await listConnectedProviders(db, userId)).size
+	const eventsLast7d = await countEventsLast7d(db, userId)
+	return t("startAdaptive", {
+		username: username ?? "",
+		connectionsCount,
+		connectionsWord: pluralizeConnections(connectionsCount, locale),
+		eventsLast7d,
+	})
 }

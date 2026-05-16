@@ -49,7 +49,11 @@ import {
 	renderSettingsSection,
 	toggleNotifySelf,
 } from "./hub/settings.js"
-import { renderOnboardingStep1, renderOnboardingStep2 } from "./onboarding.js"
+import {
+	renderAdaptiveStart,
+	renderOnboardingStep1,
+	renderOnboardingStep2,
+} from "./onboarding.js"
 import { handleStatusCommand } from "./status.js"
 
 export type BotContext = Context & I18nFlavor
@@ -321,10 +325,20 @@ bot.command("start", async (ctx) => {
 		return
 	}
 
-	const username = ctx.from?.username
-	const text = username ? ctx.t("start.welcome", { username }) : ctx.t("start.welcomeFallback")
+	const text = await renderAdaptiveStart({
+		db,
+		userId: user.id,
+		t: ctx.t,
+		username: ctx.from?.username ?? null,
+		locale: ctx.locale,
+	})
 	await ctx.reply(text, {
-		reply_markup: { keyboard: mainReplyKeyboard(ctx.t).build(), resize_keyboard: true, is_persistent: true },
+		parse_mode: "HTML",
+		reply_markup: {
+			keyboard: mainReplyKeyboard(ctx.t).build(),
+			resize_keyboard: true,
+			is_persistent: true,
+		},
 	})
 })
 
