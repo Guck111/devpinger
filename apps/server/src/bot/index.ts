@@ -38,6 +38,7 @@ import { type I18nFlavor, createI18nMiddleware } from "./i18n.js"
 import { dbLocaleResolver } from "./locale-resolver.js"
 import { handleProjectAdd, handleProjectRemove, handleProjectsCommand } from "./projects.js"
 import { handleRepoAdd, handleRepoRemove, handleReposCommand } from "./repos.js"
+import { handleHelpCommand } from "./help.js"
 import { handleStatusCommand } from "./status.js"
 
 export type BotContext = Context & I18nFlavor
@@ -141,9 +142,7 @@ bot.command("start", async (ctx) => {
 	await ctx.reply(text, { reply_markup: await buildStartMenu(ctx) })
 })
 
-bot.command("help", async (ctx) => {
-	await ctx.reply(ctx.t("help.text"))
-})
+bot.command("help", handleHelpCommand)
 
 bot.command("sources", async (ctx) => {
 	await ctx.reply(
@@ -402,7 +401,7 @@ bot.callbackQuery(/^mute:create:(source|repo|project|event_type):([^:]+):(.+)$/,
 
 bot.callbackQuery("help", async (ctx) => {
 	await ctx.answerCallbackQuery()
-	await ctx.reply(ctx.t("help.text"))
+	await ctx.reply(ctx.t("helpV2.text"), { parse_mode: "HTML" })
 })
 
 bot.callbackQuery("lang", async (ctx) => {
