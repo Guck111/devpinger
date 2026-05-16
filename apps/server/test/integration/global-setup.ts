@@ -13,7 +13,31 @@ const migrationsFolder = path.resolve(__dirname, "../../../../packages/db/drizzl
 let pgContainer: StartedPostgreSqlContainer | undefined
 let redisContainer: StartedRedisContainer | undefined
 
+const seedStubEnv = (): void => {
+	process.env.PUBLIC_BASE_URL ??= "http://localhost:3001"
+	process.env.DATABASE_URL ??= "postgres://stub:stub@localhost:5432/stub"
+	process.env.REDIS_URL ??= "redis://localhost:6379"
+	process.env.TELEGRAM_BOT_TOKEN ??= "test:telegram-bot-token"
+	process.env.TELEGRAM_BOT_USERNAME ??= "devpinger_test_bot"
+	process.env.TELEGRAM_WEBHOOK_SECRET ??= "test-webhook-secret-1234567890"
+	process.env.ENCRYPTION_KEY ??= "0".repeat(64)
+	process.env.GITHUB_OAUTH_CLIENT_ID ??= "test-github-id"
+	process.env.GITHUB_OAUTH_CLIENT_SECRET ??= "test-github-secret"
+	process.env.GITHUB_OAUTH_REDIRECT_URI ??= "http://localhost:3001/oauth/github/callback"
+	process.env.GITHUB_WEBHOOK_SECRET_SEED ??= "test-github-webhook-secret-seed-1234567890abcdef"
+	process.env.JIRA_OAUTH_CLIENT_ID ??= "test-jira-id"
+	process.env.JIRA_OAUTH_CLIENT_SECRET ??= "test-jira-secret"
+	process.env.JIRA_OAUTH_REDIRECT_URI ??= "http://localhost:3001/oauth/jira/callback"
+	process.env.LOG_LEVEL ??= "warn"
+}
+
 export const setup = async (): Promise<void> => {
+	// Always seed stub env so module loads (loadServerEnv()) don't fail
+	// even when testcontainers can't start (CI without docker, etc).
+	// Tests that need a real DB look at INTEGRATION_DB_URL and skip
+	// themselves via describe.skipIf(...) when it's missing.
+	seedStubEnv()
+
 	try {
 		pgContainer = await new PostgreSqlContainer("postgres:16-alpine")
 			.withDatabase("devpinger_test")
@@ -41,23 +65,8 @@ export const setup = async (): Promise<void> => {
 
 	process.env.INTEGRATION_DB_URL = databaseUrl
 	process.env.INTEGRATION_REDIS_URL = redisUrl
-
-	// Stable defaults so loadServerEnv doesn't fail when ingest imports config.
 	process.env.DATABASE_URL = databaseUrl
 	process.env.REDIS_URL = redisUrl
-	process.env.PUBLIC_BASE_URL ??= "http://localhost:3001"
-	process.env.TELEGRAM_BOT_TOKEN ??= "test:telegram-bot-token"
-	process.env.TELEGRAM_BOT_USERNAME ??= "devpinger_test_bot"
-	process.env.TELEGRAM_WEBHOOK_SECRET ??= "test-webhook-secret-1234567890"
-	process.env.ENCRYPTION_KEY ??= "0".repeat(64)
-	process.env.GITHUB_OAUTH_CLIENT_ID ??= "test-github-id"
-	process.env.GITHUB_OAUTH_CLIENT_SECRET ??= "test-github-secret"
-	process.env.GITHUB_OAUTH_REDIRECT_URI ??= "http://localhost:3001/oauth/github/callback"
-	process.env.GITHUB_WEBHOOK_SECRET_SEED ??= "test-github-webhook-secret-seed-1234567890abcdef"
-	process.env.JIRA_OAUTH_CLIENT_ID ??= "test-jira-id"
-	process.env.JIRA_OAUTH_CLIENT_SECRET ??= "test-jira-secret"
-	process.env.JIRA_OAUTH_REDIRECT_URI ??= "http://localhost:3001/oauth/jira/callback"
-	process.env.LOG_LEVEL ??= "warn"
 
 	// Hermetic network: block every outbound HTTP except testcontainers (localhost).
 	nock.disableNetConnect()
