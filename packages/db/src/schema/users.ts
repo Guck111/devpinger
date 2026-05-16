@@ -16,6 +16,8 @@ export const users = pgTable("users", {
 	planExpiresAt: timestamp("plan_expires_at", { withTimezone: true }),
 	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 	lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().default(sql`now()`),
+	onboardingCompletedAt: timestamp("onboarding_completed_at", { withTimezone: true }),
+	firstEventNotifiedAt: timestamp("first_event_notified_at", { withTimezone: true }),
 })
 
 export type User = typeof users.$inferSelect
