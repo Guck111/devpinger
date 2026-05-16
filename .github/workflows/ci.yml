@@ -64,6 +64,9 @@ jobs:
         run: pnpm --filter @devpinger/db exec drizzle-kit check
 
       - name: Test
+        env:
+          INTEGRATION_DB_URL: postgres://devpinger:devpinger@localhost:5432/devpinger_ci
+          INTEGRATION_REDIS_URL: redis://localhost:6379
         run: pnpm -r test
 
       - name: Build

@@ -31,12 +31,38 @@ const seedStubEnv = (): void => {
 	process.env.LOG_LEVEL ??= "warn"
 }
 
+const applyMigrations = async (databaseUrl: string): Promise<void> => {
+	const sql = postgres(databaseUrl, { max: 1, prepare: false })
+	const db = drizzle(sql)
+	try {
+		await migrate(db, { migrationsFolder })
+	} finally {
+		await sql.end()
+	}
+}
+
+const enableHermeticNetwork = (): void => {
+	nock.disableNetConnect()
+	nock.enableNetConnect(
+		(host) =>
+			host.startsWith("localhost") || host.startsWith("127.0.0.1") || host.startsWith("0.0.0.0"),
+	)
+}
+
 export const setup = async (): Promise<void> => {
-	// Always seed stub env so module loads (loadServerEnv()) don't fail
-	// even when testcontainers can't start (CI without docker, etc).
-	// Tests that need a real DB look at INTEGRATION_DB_URL and skip
-	// themselves via describe.skipIf(...) when it's missing.
 	seedStubEnv()
+
+	// If the env already provides INTEGRATION_DB_URL + INTEGRATION_REDIS_URL
+	// (CI services, local docker compose), reuse them — no need for testcontainers.
+	const presetDbUrl = process.env.INTEGRATION_DB_URL
+	const presetRedisUrl = process.env.INTEGRATION_REDIS_URL
+	if (presetDbUrl && presetRedisUrl) {
+		await applyMigrations(presetDbUrl)
+		process.env.DATABASE_URL = presetDbUrl
+		process.env.REDIS_URL = presetRedisUrl
+		enableHermeticNetwork()
+		return
+	}
 
 	try {
 		pgContainer = await new PostgreSqlContainer("postgres:16-alpine")
@@ -55,25 +81,14 @@ export const setup = async (): Promise<void> => {
 	const databaseUrl = pgContainer.getConnectionUri()
 	const redisUrl = redisContainer.getConnectionUrl()
 
-	const sql = postgres(databaseUrl, { max: 1, prepare: false })
-	const db = drizzle(sql)
-	try {
-		await migrate(db, { migrationsFolder })
-	} finally {
-		await sql.end()
-	}
+	await applyMigrations(databaseUrl)
 
 	process.env.INTEGRATION_DB_URL = databaseUrl
 	process.env.INTEGRATION_REDIS_URL = redisUrl
 	process.env.DATABASE_URL = databaseUrl
 	process.env.REDIS_URL = redisUrl
 
-	// Hermetic network: block every outbound HTTP except testcontainers (localhost).
-	nock.disableNetConnect()
-	nock.enableNetConnect(
-		(host) =>
-			host.startsWith("localhost") || host.startsWith("127.0.0.1") || host.startsWith("0.0.0.0"),
-	)
+	enableHermeticNetwork()
 }
 
 export const teardown = async (): Promise<void> => {
