@@ -99,12 +99,7 @@ export const countEventsLast7d = async (db: typeof Db, userId: string): Promise<
 	const [row] = await db
 		.select({ n: sql<number>`count(*)` })
 		.from(events)
-		.where(
-			and(
-				eq(events.userId, userId),
-				sql`${events.createdAt} > now() - interval '7 days'`,
-			),
-		)
+		.where(and(eq(events.userId, userId), sql`${events.createdAt} > now() - interval '7 days'`))
 	return Number(row?.n ?? 0)
 }
 

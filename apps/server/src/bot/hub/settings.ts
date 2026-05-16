@@ -11,10 +11,7 @@ export interface RenderedSettings {
 	keyboard: { inline_keyboard: InlineButton[][] }
 }
 
-export const renderSettingsSection = (
-	t: Translator,
-	currentLocale: Locale,
-): RenderedSettings => {
+export const renderSettingsSection = (t: Translator, currentLocale: Locale): RenderedSettings => {
 	const kb = new InlineKeyboard()
 		.text(t("hubV2.settings.lang", { current: currentLocale }), "hub:settings:lang")
 		.row()

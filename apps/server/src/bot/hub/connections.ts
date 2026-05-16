@@ -10,9 +10,7 @@ export interface RenderConnectionsInput {
 	oauthUrl: (provider: "github" | "jira") => string
 }
 
-type InlineButton =
-	| { text: string; callback_data: string }
-	| { text: string; url: string }
+type InlineButton = { text: string; callback_data: string } | { text: string; url: string }
 
 export interface RenderedConnections {
 	text: string

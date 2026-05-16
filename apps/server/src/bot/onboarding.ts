@@ -4,9 +4,7 @@ import type { db as Db } from "../db.js"
 import { listConnectedProviders } from "../services/connections.js"
 import { countEventsLast7d } from "../services/history.js"
 
-type InlineButton =
-	| { text: string; callback_data: string }
-	| { text: string; url: string }
+type InlineButton = { text: string; callback_data: string } | { text: string; url: string }
 
 export interface OnboardingStep1Input {
 	t: Translator
@@ -20,13 +18,9 @@ export interface OnboardingStep1Output {
 	step: { text: string; keyboard: { inline_keyboard: InlineButton[][] } }
 }
 
-export const renderOnboardingStep1 = (
-	input: OnboardingStep1Input,
-): OnboardingStep1Output => {
+export const renderOnboardingStep1 = (input: OnboardingStep1Input): OnboardingStep1Output => {
 	const { t, username, githubOauthUrl, jiraOauthUrl } = input
-	const welcome = username
-		? t("onboarding.welcome", { username })
-		: t("onboarding.welcomeFallback")
+	const welcome = username ? t("onboarding.welcome", { username }) : t("onboarding.welcomeFallback")
 	const stepText = `${t("onboarding.step1Title")}\n\n${t("onboarding.step1Body")}`
 	const kb = new InlineKeyboard()
 		.url(t("hubV2.connections.githubConnect"), githubOauthUrl)
@@ -51,9 +45,7 @@ export interface OnboardingStep2Output {
 	keyboard: { inline_keyboard: InlineButton[][] }
 }
 
-export const renderOnboardingStep2 = (
-	input: OnboardingStep2Input,
-): OnboardingStep2Output => {
+export const renderOnboardingStep2 = (input: OnboardingStep2Input): OnboardingStep2Output => {
 	const { t, provider } = input
 	const cta =
 		provider === "github"
@@ -75,9 +67,7 @@ export interface OnboardingStep3Output {
 	text: string
 }
 
-export const renderOnboardingStep3 = (
-	input: OnboardingStep3Input,
-): OnboardingStep3Output => {
+export const renderOnboardingStep3 = (input: OnboardingStep3Input): OnboardingStep3Output => {
 	const { t, target } = input
 	return {
 		text: `${t("onboarding.step3Title", { target })}\n\n${t("onboarding.step3Body")}`,

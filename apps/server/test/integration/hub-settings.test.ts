@@ -29,9 +29,12 @@ describe.skipIf(skip)("hub: settings section", () => {
 		}
 		const r = renderSettingsSection(t, "ru")
 		expect(r.text).toContain("Settings")
-		expect(
-			r.keyboard.inline_keyboard.flat().map((b) => ("text" in b ? b.text : "")),
-		).toEqual(["🌐 Language: ru", "🔔 Notifications", "👤 Account", "✖ Close"])
+		expect(r.keyboard.inline_keyboard.flat().map((b) => ("text" in b ? b.text : ""))).toEqual([
+			"🌐 Language: ru",
+			"🔔 Notifications",
+			"👤 Account",
+			"✖ Close",
+		])
 	})
 
 	it("toggleNotifySelf flips and persists state", async () => {

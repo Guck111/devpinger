@@ -13,10 +13,9 @@ describe("registerBotMetadata", () => {
 
 		expect(setMyShortDescription).toHaveBeenCalledTimes(2)
 		expect(setMyShortDescription).toHaveBeenCalledWith(expect.stringMatching(/one-tap/i))
-		expect(setMyShortDescription).toHaveBeenCalledWith(
-			expect.stringMatching(/одной кнопкой/i),
-			{ language_code: "ru" },
-		)
+		expect(setMyShortDescription).toHaveBeenCalledWith(expect.stringMatching(/одной кнопкой/i), {
+			language_code: "ru",
+		})
 		expect(setMyDescription).toHaveBeenCalledTimes(2)
 		expect(setMyDescription).toHaveBeenCalledWith(expect.stringMatching(/DevPinger/))
 		expect(setMyDescription).toHaveBeenCalledWith(expect.stringMatching(/DevPinger/), {

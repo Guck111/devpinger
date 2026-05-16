@@ -49,11 +49,7 @@ import {
 	renderSettingsSection,
 	toggleNotifySelf,
 } from "./hub/settings.js"
-import {
-	renderAdaptiveStart,
-	renderOnboardingStep1,
-	renderOnboardingStep2,
-} from "./onboarding.js"
+import { renderAdaptiveStart, renderOnboardingStep1, renderOnboardingStep2 } from "./onboarding.js"
 import { handleStatusCommand } from "./status.js"
 
 export type BotContext = Context & I18nFlavor

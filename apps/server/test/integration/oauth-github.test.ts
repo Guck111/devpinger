@@ -6,10 +6,7 @@ import {
 } from "@devpinger/db"
 import { eq } from "drizzle-orm"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
-import {
-	mockGitHubOAuthExchange,
-	mockGitHubUserApi,
-} from "./helpers/nock-helpers.js"
+import { mockGitHubOAuthExchange, mockGitHubUserApi } from "./helpers/nock-helpers.js"
 import { createTestUser } from "./helpers/seed.js"
 
 const integrationDbUrl = process.env.INTEGRATION_DB_URL
