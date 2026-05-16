@@ -4,6 +4,7 @@ import { PostgreSqlContainer, type StartedPostgreSqlContainer } from "@testconta
 import { RedisContainer, type StartedRedisContainer } from "@testcontainers/redis"
 import { drizzle } from "drizzle-orm/postgres-js"
 import { migrate } from "drizzle-orm/postgres-js/migrator"
+import nock from "nock"
 import postgres from "postgres"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -57,8 +58,17 @@ export const setup = async (): Promise<void> => {
 	process.env.JIRA_OAUTH_CLIENT_SECRET ??= "test-jira-secret"
 	process.env.JIRA_OAUTH_REDIRECT_URI ??= "http://localhost:3001/oauth/jira/callback"
 	process.env.LOG_LEVEL ??= "warn"
+
+	// Hermetic network: block every outbound HTTP except testcontainers (localhost).
+	nock.disableNetConnect()
+	nock.enableNetConnect(
+		(host) =>
+			host.startsWith("localhost") || host.startsWith("127.0.0.1") || host.startsWith("0.0.0.0"),
+	)
 }
 
 export const teardown = async (): Promise<void> => {
+	nock.cleanAll()
+	nock.enableNetConnect()
 	await Promise.allSettled([pgContainer?.stop(), redisContainer?.stop()])
 }
