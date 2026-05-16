@@ -30,69 +30,78 @@ interface DbEvent extends DbEventLike {
 
 export { type DeliveryDecision, decideDelivery } from "./decide-delivery.js"
 
-export const startNotificationsWorker = (connection: Redis) => {
+/**
+ * Pure async function that processes a single notification job payload.
+ * Exported so that integration tests can drive the same logic that the
+ * BullMQ worker dispatches without spinning up a Worker instance.
+ */
+export const handleNotificationJob = async (
+	jobData: NotificationJob,
+	context: { jobId?: string } = {},
+): Promise<void> => {
 	const destination = destinationRegistry.require("telegram")
+	const start = Date.now()
+	addBreadcrumb({
+		category: "queue.notifications",
+		level: "info",
+		message: "job started",
+		data: { jobId: context.jobId, eventId: jobData.eventId, userId: jobData.userId },
+	})
+	const [event] = (await db
+		.select()
+		.from(eventsTable)
+		.where(eq(eventsTable.id, jobData.eventId))
+		.limit(1)) as DbEvent[]
+	const decision = decideDelivery(event ?? null)
+	if (decision !== "deliver" || !event) {
+		logger.debug({ eventId: jobData.eventId, decision }, "skipping notification")
+		return
+	}
+	const normalized = dbEventToNormalized(event)
 
+	const [user] = await db
+		.select({ lang: usersTable.lang })
+		.from(usersTable)
+		.where(eq(usersTable.id, jobData.userId))
+		.limit(1)
+	const lang = (user?.lang as Locale | undefined) ?? jobData.lang
+
+	const result = await destination.deliver({
+		user: {
+			id: jobData.userId,
+			lang,
+			preferences: { telegramChatId: jobData.telegramChatId },
+		},
+		event: normalized,
+		actions: [],
+	})
+
+	const sentMessageId = result.messageId ? Number(result.messageId) : null
+	await db
+		.update(eventsTable)
+		.set({
+			status: "delivered",
+			telegramMessageId: sentMessageId,
+			deliveredAt: sql`now()`,
+		})
+		.where(eq(eventsTable.id, event.id))
+	logger.info(
+		{
+			queue: "notifications",
+			jobId: context.jobId,
+			eventId: event.id,
+			userId: jobData.userId,
+			chatId: jobData.telegramChatId,
+			latencyMs: Date.now() - start,
+		},
+		"notification delivered",
+	)
+}
+
+export const startNotificationsWorker = (connection: Redis) => {
 	const worker = new Worker<NotificationJob>(
 		"notifications",
-		async (job) => {
-			const start = Date.now()
-			addBreadcrumb({
-				category: "queue.notifications",
-				level: "info",
-				message: "job started",
-				data: { jobId: job.id, eventId: job.data.eventId, userId: job.data.userId },
-			})
-			const [event] = (await db
-				.select()
-				.from(eventsTable)
-				.where(eq(eventsTable.id, job.data.eventId))
-				.limit(1)) as DbEvent[]
-			const decision = decideDelivery(event ?? null)
-			if (decision !== "deliver" || !event) {
-				logger.debug({ eventId: job.data.eventId, decision }, "skipping notification")
-				return
-			}
-			const normalized = dbEventToNormalized(event)
-
-			const [user] = await db
-				.select({ lang: usersTable.lang })
-				.from(usersTable)
-				.where(eq(usersTable.id, job.data.userId))
-				.limit(1)
-			const lang = (user?.lang as Locale | undefined) ?? job.data.lang
-
-			const result = await destination.deliver({
-				user: {
-					id: job.data.userId,
-					lang,
-					preferences: { telegramChatId: job.data.telegramChatId },
-				},
-				event: normalized,
-				actions: [],
-			})
-
-			const sentMessageId = result.messageId ? Number(result.messageId) : null
-			await db
-				.update(eventsTable)
-				.set({
-					status: "delivered",
-					telegramMessageId: sentMessageId,
-					deliveredAt: sql`now()`,
-				})
-				.where(eq(eventsTable.id, event.id))
-			logger.info(
-				{
-					queue: "notifications",
-					jobId: job.id,
-					eventId: event.id,
-					userId: job.data.userId,
-					chatId: job.data.telegramChatId,
-					latencyMs: Date.now() - start,
-				},
-				"notification delivered",
-			)
-		},
+		async (job) => handleNotificationJob(job.data, { jobId: job.id }),
 		{ connection, concurrency: 10 },
 	)
 
