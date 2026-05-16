@@ -18,6 +18,7 @@ export const eventStatusEnum = pgEnum("event_status", [
 	"muted",
 	"snoozed",
 	"completed",
+	"failed",
 ])
 
 export const events = pgTable(

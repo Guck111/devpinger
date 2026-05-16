@@ -106,3 +106,12 @@ export const findSubscriptionById = async (
 export const deactivateSubscription = async (db: typeof Db, id: string): Promise<void> => {
 	await db.update(subscriptions).set({ isActive: false }).where(eq(subscriptions.id, id))
 }
+
+export const deactivateAllForUser = async (db: typeof Db, userId: string): Promise<number> => {
+	const rows = await db
+		.update(subscriptions)
+		.set({ isActive: false })
+		.where(eq(subscriptions.userId, userId))
+		.returning({ id: subscriptions.id })
+	return rows.length
+}

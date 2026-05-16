@@ -2,11 +2,13 @@ import {
 	type DbEventLike,
 	dbEventToNormalized,
 	events as eventsTable,
+	subscriptions as subscriptionsTable,
 	users as usersTable,
 } from "@devpinger/db"
 import type { Locale } from "@devpinger/i18n"
 import { Worker } from "bullmq"
 import { eq, sql } from "drizzle-orm"
+import { GrammyError } from "grammy"
 import type { Redis } from "ioredis"
 import { db } from "../db.js"
 import { logger } from "../logger.js"
@@ -66,15 +68,38 @@ export const handleNotificationJob = async (
 		.limit(1)
 	const lang = (user?.lang as Locale | undefined) ?? jobData.lang
 
-	const result = await destination.deliver({
-		user: {
-			id: jobData.userId,
-			lang,
-			preferences: { telegramChatId: jobData.telegramChatId },
-		},
-		event: normalized,
-		actions: [],
-	})
+	let result: Awaited<ReturnType<typeof destination.deliver>>
+	try {
+		result = await destination.deliver({
+			user: {
+				id: jobData.userId,
+				lang,
+				preferences: { telegramChatId: jobData.telegramChatId },
+			},
+			event: normalized,
+			actions: [],
+		})
+	} catch (err) {
+		if (isTelegramForbidden(err)) {
+			const deactivated = await db
+				.update(subscriptionsTable)
+				.set({ isActive: false })
+				.where(eq(subscriptionsTable.userId, jobData.userId))
+				.returning({ id: subscriptionsTable.id })
+			logger.warn(
+				{
+					userId: jobData.userId,
+					eventId: event.id,
+					deactivatedCount: deactivated.length,
+					description: getGrammyDescription(err),
+				},
+				"telegram 403: user blocked the bot; deactivated subscriptions",
+			)
+			await db.update(eventsTable).set({ status: "failed" }).where(eq(eventsTable.id, event.id))
+			return
+		}
+		throw err
+	}
 
 	const sentMessageId = result.messageId ? Number(result.messageId) : null
 	await db
@@ -96,6 +121,27 @@ export const handleNotificationJob = async (
 		},
 		"notification delivered",
 	)
+}
+
+// GrammyError 403 means the user blocked the bot or deactivated their account.
+// Duck-type the check so test doubles can throw plain objects with the same
+// shape rather than constructing a real GrammyError.
+const isTelegramForbidden = (err: unknown): boolean => {
+	if (err instanceof GrammyError) return err.error_code === 403
+	if (err && typeof err === "object") {
+		const e = err as { name?: unknown; error_code?: unknown }
+		return e.name === "GrammyError" && e.error_code === 403
+	}
+	return false
+}
+
+const getGrammyDescription = (err: unknown): string | undefined => {
+	if (err instanceof GrammyError) return err.description
+	if (err && typeof err === "object" && "description" in err) {
+		const d = (err as { description?: unknown }).description
+		return typeof d === "string" ? d : undefined
+	}
+	return undefined
 }
 
 export const startNotificationsWorker = (connection: Redis) => {

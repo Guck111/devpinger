@@ -1,7 +1,11 @@
-import { createDatabase, events as eventsTable } from "@devpinger/db"
-import { eq } from "drizzle-orm"
+import {
+	createDatabase,
+	events as eventsTable,
+	subscriptions as subscriptionsTable,
+} from "@devpinger/db"
+import { and, eq } from "drizzle-orm"
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
-import { createTestUser, insertEvent } from "./helpers/seed.js"
+import { addSubscription, createTestUser, insertEvent } from "./helpers/seed.js"
 
 const integrationDbUrl = process.env.INTEGRATION_DB_URL
 const skip = !integrationDbUrl
@@ -110,6 +114,52 @@ describe.skipIf(skip)("notification dispatch (worker processor)", () => {
 			.where(eq(eventsTable.id, event.id))
 			.limit(1)
 		expect(unchanged!.telegramMessageId).toBe(100)
+	})
+
+	it("on Telegram 403, deactivates all user subscriptions and marks event failed", async () => {
+		const tgChatId = 666_004
+		const user = await createTestUser(db, {
+			telegramId: tgChatId,
+			telegramChatId: tgChatId,
+			telegramUsername: "blockedbot",
+		})
+		await addSubscription(db, user.id, { provider: "github", scope: "blockedbot/a" })
+		await addSubscription(db, user.id, { provider: "github", scope: "blockedbot/b" })
+		const event = await insertEvent(db, user.id, {
+			scope: "blockedbot/a",
+			metadata: { prNumber: 4, number: 4 },
+		})
+
+		const forbidden = Object.assign(new Error("Forbidden: bot was blocked by the user"), {
+			name: "GrammyError",
+			error_code: 403,
+			description: "Forbidden: bot was blocked by the user",
+			method: "sendMessage",
+		})
+		deliverMock.mockRejectedValueOnce(forbidden)
+
+		await expect(
+			handleNotificationJob({
+				eventId: event.id,
+				userId: user.id,
+				telegramChatId: tgChatId,
+				lang: "en",
+			}),
+		).resolves.toBeUndefined()
+
+		const subs = await db
+			.select()
+			.from(subscriptionsTable)
+			.where(eq(subscriptionsTable.userId, user.id))
+		expect(subs.length).toBeGreaterThanOrEqual(2)
+		for (const s of subs) expect(s.isActive).toBe(false)
+
+		const [updated] = await db
+			.select()
+			.from(eventsTable)
+			.where(and(eq(eventsTable.id, event.id), eq(eventsTable.userId, user.id)))
+			.limit(1)
+		expect(updated!.status).toBe("failed")
 	})
 
 	it("skips delivery for a muted event", async () => {
