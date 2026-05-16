@@ -42,6 +42,12 @@ import { handleHelpCommand } from "./help.js"
 import { renderConnectionsSection } from "./hub/connections.js"
 import { renderEventsSection } from "./hub/events.js"
 import { registerHub } from "./hub/index.js"
+import {
+	renderAccountSubsection,
+	renderNotificationsSubsection,
+	renderSettingsSection,
+	toggleNotifySelf,
+} from "./hub/settings.js"
 import { handleStatusCommand } from "./status.js"
 
 export type BotContext = Context & I18nFlavor
@@ -96,7 +102,11 @@ registerHub(bot, {
 		})
 	},
 	settings: async (ctx) => {
-		await ctx.reply(ctx.t("hubV2.settings.title"), { parse_mode: "HTML" })
+		const rendered = renderSettingsSection(ctx.t, ctx.locale)
+		await ctx.reply(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
 	},
 	help: async (ctx) => {
 		await ctx.reply(ctx.t("helpV2.text"), { parse_mode: "HTML" })
@@ -156,6 +166,102 @@ bot.callbackQuery("hub:events:stats", async (ctx) => {
 bot.callbackQuery("hub:events:mutes", async (ctx) => {
 	await ctx.answerCallbackQuery()
 	await handleMutesCommand(ctx as unknown as BotContext)
+})
+
+bot.callbackQuery("hub:open:settings", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	const rendered = renderSettingsSection(ctx.t, ctx.locale)
+	try {
+		await ctx.editMessageText(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	} catch {
+		await ctx.reply(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	}
+})
+
+bot.callbackQuery("hub:settings:lang", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	const kb = new InlineKeyboard()
+	for (const locale of SUPPORTED_LOCALES) {
+		kb.text(locale === "en" ? "English" : "Русский", `lang:set:${locale}`).row()
+	}
+	await ctx.reply(ctx.t("settings.langPrompt"), { reply_markup: kb })
+})
+
+bot.callbackQuery("hub:settings:notifications", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	const tgId = ctx.from?.id
+	if (!tgId) return
+	const user = await getUserByTelegramId(db, tgId)
+	if (!user) return
+	const rendered = renderNotificationsSubsection(ctx.t, user.notifySelfActions)
+	try {
+		await ctx.editMessageText(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	} catch {
+		await ctx.reply(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	}
+})
+
+bot.callbackQuery("hub:settings:notify_self:toggle", async (ctx) => {
+	const tgId = ctx.from?.id
+	if (!tgId) {
+		await ctx.answerCallbackQuery()
+		return
+	}
+	const user = await getUserByTelegramId(db, tgId)
+	if (!user) {
+		await ctx.answerCallbackQuery()
+		return
+	}
+	const next = await toggleNotifySelf(db, user.id)
+	await ctx.answerCallbackQuery({
+		text: next
+			? ctx.t("hubV2.notifications.selfActionsOn")
+			: ctx.t("hubV2.notifications.selfActionsOff"),
+	})
+	const rendered = renderNotificationsSubsection(ctx.t, next)
+	try {
+		await ctx.editMessageReplyMarkup({ reply_markup: rendered.keyboard })
+	} catch {
+		// best-effort
+	}
+})
+
+bot.callbackQuery("hub:settings:account", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	const rendered = renderAccountSubsection(ctx.t)
+	try {
+		await ctx.editMessageText(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	} catch {
+		await ctx.reply(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
+	}
+})
+
+bot.callbackQuery("hub:settings:account:export", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	await handleExportCommand(ctx as unknown as Parameters<typeof handleExportCommand>[0])
+})
+
+bot.callbackQuery("hub:settings:account:delete", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	await handleUnsubscribeCommand(ctx as unknown as Parameters<typeof handleUnsubscribeCommand>[0])
 })
 
 const buildStartMenu = async (ctx: BotContext): Promise<InlineKeyboard> => {
@@ -344,7 +450,7 @@ bot.command("lang", async (ctx) => {
 
 bot.command("notify_self", async (ctx) => {
 	const telegramId = ctx.from?.id
-	if (!telegramId || telegramId !== env.ADMIN_TELEGRAM_ID) return
+	if (!telegramId) return
 	const user = await getUserByTelegramId(db, telegramId)
 	if (!user) return
 	const arg = ctx.match?.toString().trim().toLowerCase()
@@ -497,6 +603,13 @@ bot.callbackQuery(/^mute:create:(source|repo|project|event_type):([^:]+):(.+)$/,
 		await ctx.deleteMessage()
 	} catch {
 		// best effort
+	}
+	if (created) {
+		try {
+			await ctx.reply(ctx.t("hubV2.mutesAdded"))
+		} catch {
+			// best-effort
+		}
 	}
 })
 
