@@ -39,6 +39,7 @@ import { dbLocaleResolver } from "./locale-resolver.js"
 import { handleProjectAdd, handleProjectRemove, handleProjectsCommand } from "./projects.js"
 import { handleRepoAdd, handleRepoRemove, handleReposCommand } from "./repos.js"
 import { handleHelpCommand } from "./help.js"
+import { renderConnectionsSection } from "./hub/connections.js"
 import { registerHub } from "./hub/index.js"
 import { handleStatusCommand } from "./status.js"
 
@@ -64,9 +65,27 @@ bot.use(async (ctx, next) => {
 	await next()
 })
 
+const oauthUrlFor = (telegramId: number) => (provider: "github" | "jira") => {
+	const sig = signTg(telegramId, `oauth-${provider}-start`, env.ENCRYPTION_KEY)
+	return `${env.PUBLIC_BASE_URL}/oauth/${provider}/start?sig=${sig}`
+}
+
 registerHub(bot, {
 	connections: async (ctx) => {
-		await ctx.reply(ctx.t("hubV2.connections.title"), { parse_mode: "HTML" })
+		const tgId = ctx.from?.id
+		if (!tgId) return
+		const user = await getUserByTelegramId(db, tgId)
+		if (!user) return
+		const rendered = await renderConnectionsSection({
+			db,
+			userId: user.id,
+			t: ctx.t,
+			oauthUrl: oauthUrlFor(tgId),
+		})
+		await ctx.reply(rendered.text, {
+			parse_mode: "HTML",
+			reply_markup: rendered.keyboard,
+		})
 	},
 	events: async (ctx) => {
 		await ctx.reply(ctx.t("hubV2.events.title"), { parse_mode: "HTML" })
@@ -77,6 +96,46 @@ registerHub(bot, {
 	help: async (ctx) => {
 		await ctx.reply(ctx.t("helpV2.text"), { parse_mode: "HTML" })
 	},
+})
+
+bot.callbackQuery(/^hub:conn:open:(repos|projects)$/, async (ctx) => {
+	await ctx.answerCallbackQuery()
+	const target = ctx.match?.[1]
+	if (target === "repos") {
+		await handleReposCommand(ctx as unknown as Parameters<typeof handleReposCommand>[0])
+	} else if (target === "projects") {
+		await handleProjectsCommand(ctx as unknown as Parameters<typeof handleProjectsCommand>[0])
+	}
+})
+
+bot.callbackQuery(/^hub:conn:disconnect:(github|jira)$/, async (ctx) => {
+	await ctx.answerCallbackQuery()
+	const provider = ctx.match?.[1] as "github" | "jira"
+	const tgId = ctx.from?.id
+	if (!tgId) return
+	const user = await getUserByTelegramId(db, tgId)
+	if (!user) return
+	const { deleteConnection } = await import("../services/connections.js")
+	const { removed } = await deleteConnection(db, user.id, provider)
+	if (!removed) return
+	const msgKey =
+		provider === "github"
+			? "hubV2.connections.disconnectedGithub"
+			: "hubV2.connections.disconnectedJira"
+	await ctx.reply(ctx.t(msgKey))
+})
+
+bot.callbackQuery("hub:close", async (ctx) => {
+	await ctx.answerCallbackQuery()
+	try {
+		await ctx.deleteMessage()
+	} catch {
+		// best-effort
+	}
+})
+
+bot.callbackQuery("hub:noop", async (ctx) => {
+	await ctx.answerCallbackQuery()
 })
 
 const buildStartMenu = async (ctx: BotContext): Promise<InlineKeyboard> => {
