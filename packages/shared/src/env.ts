@@ -29,9 +29,7 @@ const serverEnvSchema = z.object({
 	// Comma-separated list of origins allowed to call public landing endpoints
 	// (POST /v1/landing/subscribe). Browser cross-origin only — webhooks server-to-server
 	// pass without an Origin header and are unaffected.
-	LANDING_ALLOWED_ORIGINS: z
-		.string()
-		.default("https://devpinger.com,http://localhost:4321"),
+	LANDING_ALLOWED_ORIGINS: z.string().default("https://devpinger.com,http://localhost:4321"),
 })
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>
