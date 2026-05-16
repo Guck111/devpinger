@@ -42,12 +42,14 @@ import { handleHelpCommand } from "./help.js"
 import { renderConnectionsSection } from "./hub/connections.js"
 import { renderEventsSection } from "./hub/events.js"
 import { registerHub } from "./hub/index.js"
+import { mainReplyKeyboard } from "./hub/keyboard.js"
 import {
 	renderAccountSubsection,
 	renderNotificationsSubsection,
 	renderSettingsSection,
 	toggleNotifySelf,
 } from "./hub/settings.js"
+import { renderOnboardingStep1, renderOnboardingStep2 } from "./onboarding.js"
 import { handleStatusCommand } from "./status.js"
 
 export type BotContext = Context & I18nFlavor
@@ -264,58 +266,19 @@ bot.callbackQuery("hub:settings:account:delete", async (ctx) => {
 	await handleUnsubscribeCommand(ctx as unknown as Parameters<typeof handleUnsubscribeCommand>[0])
 })
 
-const buildStartMenu = async (ctx: BotContext): Promise<InlineKeyboard> => {
-	const tgId = ctx.from?.id
-	if (!tgId) return new InlineKeyboard().text(ctx.t("menu.help"), "help")
-	const sig = (provider: "github" | "jira") =>
-		signTg(tgId, `oauth-${provider}-start`, env.ENCRYPTION_KEY)
-	const oauthUrl = (provider: "github" | "jira") =>
-		`${env.PUBLIC_BASE_URL}/oauth/${provider}/start?sig=${sig(provider)}`
-
-	const user = await getUserByTelegramId(db, tgId)
-	const connected = user
-		? await listConnectedProviders(db, user.id)
-		: new Map<"github" | "jira", { providerUsername: string | null }>()
-
-	const kb = new InlineKeyboard()
-	const addRow = (provider: "github" | "jira", label: string, displayName: string) => {
-		const entry = connected.get(provider)
-		if (entry) {
-			const handle = entry.providerUsername ? `: @${entry.providerUsername}` : ""
-			kb.text(`✅ ${displayName}${handle}`, `oauth:info:${provider}`).row()
-		} else {
-			kb.url(label, oauthUrl(provider)).row()
-		}
-	}
-	addRow("github", ctx.t("menu.connectGithub"), "GitHub")
-	addRow("jira", ctx.t("menu.connectJira"), "Jira")
-	return kb.text(ctx.t("menu.language"), "lang").text(ctx.t("menu.help"), "help")
-}
-
 bot.command("start", async (ctx) => {
 	const payload = ctx.match?.toString().trim() ?? ""
+	const tgId = ctx.from?.id
 
 	if (payload === "connected_github" || payload === "connected_jira") {
 		const provider = payload === "connected_github" ? "github" : "jira"
-		const user = ctx.from?.id ? await getUserByTelegramId(db, ctx.from.id) : null
-		const connected = user
-			? await listConnectedProviders(db, user.id)
-			: new Map<"github" | "jira", { providerUsername: string | null }>()
-		const entry = connected.get(provider)
-		const login = entry?.providerUsername ?? ctx.from?.username ?? "you"
-		if (provider === "github") {
-			await ctx.reply(ctx.t("start.connectedGithub", { login }))
-			await handleReposCommand(ctx)
-		} else {
-			await ctx.reply(ctx.t("start.connectedJira", { login }))
-			await handleProjectsCommand(ctx)
-		}
+		const r = renderOnboardingStep2({ t: ctx.t, provider })
+		await ctx.reply(r.text, { parse_mode: "HTML", reply_markup: r.keyboard })
 		return
 	}
 
 	if (payload.startsWith("event_")) {
 		const eventId = payload.slice("event_".length)
-		const tgId = ctx.from?.id
 		if (!tgId) return
 		const user = await getUserByTelegramId(db, tgId)
 		if (!user) return
@@ -338,9 +301,31 @@ bot.command("start", async (ctx) => {
 		return
 	}
 
+	if (!tgId) return
+	const user = await getUserByTelegramId(db, tgId)
+	if (!user) return
+
+	const connectedCount = (await listConnectedProviders(db, user.id)).size
+	if (connectedCount === 0 && user.onboardingCompletedAt === null) {
+		const s1 = renderOnboardingStep1({
+			t: ctx.t,
+			username: ctx.from?.username ?? null,
+			githubOauthUrl: oauthUrlFor(tgId)("github"),
+			jiraOauthUrl: oauthUrlFor(tgId)("jira"),
+		})
+		await ctx.reply(s1.welcome, { parse_mode: "HTML" })
+		await ctx.reply(s1.step.text, {
+			parse_mode: "HTML",
+			reply_markup: s1.step.keyboard,
+		})
+		return
+	}
+
 	const username = ctx.from?.username
 	const text = username ? ctx.t("start.welcome", { username }) : ctx.t("start.welcomeFallback")
-	await ctx.reply(text, { reply_markup: await buildStartMenu(ctx) })
+	await ctx.reply(text, {
+		reply_markup: { keyboard: mainReplyKeyboard(ctx.t).build(), resize_keyboard: true, is_persistent: true },
+	})
 })
 
 bot.command("help", handleHelpCommand)

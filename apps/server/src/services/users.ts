@@ -57,3 +57,7 @@ export const setNotifySelfActions = async (
 ): Promise<void> => {
 	await db.update(users).set({ notifySelfActions: value }).where(eq(users.id, id))
 }
+
+export const markOnboardingCompleted = async (db: typeof Db, id: string): Promise<void> => {
+	await db.update(users).set({ onboardingCompletedAt: sql`now()` }).where(eq(users.id, id))
+}

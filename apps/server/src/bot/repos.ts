@@ -19,8 +19,10 @@ import {
 	findSubscriptionById,
 	listSubscriptions,
 } from "../services/subscriptions.js"
-import { getUserByTelegramId } from "../services/users.js"
+import { getUserByTelegramId, markOnboardingCompleted } from "../services/users.js"
+import { mainReplyKeyboard } from "./hub/keyboard.js"
 import type { I18nFlavor } from "./i18n.js"
+import { renderOnboardingStep3 } from "./onboarding.js"
 
 type BotContext = Context & I18nFlavor
 
@@ -186,6 +188,18 @@ export const handleRepoAdd = async (
 			} catch {
 				// message too old; toast is sufficient
 			}
+		}
+		if (user.onboardingCompletedAt === null) {
+			const s3 = renderOnboardingStep3({ t: ctx.t, target: fullName })
+			await ctx.reply(s3.text, {
+				parse_mode: "HTML",
+				reply_markup: {
+					keyboard: mainReplyKeyboard(ctx.t).build(),
+					resize_keyboard: true,
+					is_persistent: true,
+				},
+			})
+			await markOnboardingCompleted(db, user.id)
 		}
 	} catch (err) {
 		logger.error({ err, fullName }, "repo add failed")
