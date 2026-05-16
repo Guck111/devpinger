@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto"
 import type {
 	NormalizedEvent,
 	SourceAction,
@@ -151,11 +152,16 @@ export const createJiraAdapter = (config: JiraAdapterConfig): SourceAdapter => {
 	// our DB binds (user, projectKey) — the actual provider-side webhook is
 	// a single per-cloud entity rather than per-project, so create/delete
 	// here only manage our DB-side notion of "watching this project".
+	// We still mint a per-subscription secret: when the admin registers the
+	// per-cloud webhook URL in Atlassian they include `?secret=<X>`, and
+	// our route verifies that against the persisted webhookSecret to block
+	// UUID-only spoof attempts.
 	const subscriptionCreate = async (
 		_creds: SourceCredentials,
 		scope: SubscriptionScope,
 	): Promise<SubscriptionCreateResult> => ({
 		subscriptionId: scope.providerScopeId,
+		webhookSecret: randomBytes(32).toString("base64url"),
 	})
 
 	const subscriptionDelete = async (

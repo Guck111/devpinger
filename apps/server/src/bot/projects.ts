@@ -2,8 +2,10 @@ import { createJiraClient } from "@devpinger/sources-jira"
 import type { CallbackQueryContext, CommandContext, Context } from "grammy"
 import { InlineKeyboard } from "grammy"
 import type { InlineKeyboardButton, InlineKeyboardMarkup } from "grammy/types"
+import { env } from "../config.js"
 import { db } from "../db.js"
 import { logger } from "../logger.js"
+import { sourceRegistry } from "../registries.js"
 
 const replaceButton = (
 	existing: InlineKeyboardMarkup | undefined,
@@ -126,12 +128,26 @@ export const handleProjectAdd = async (
 	if (!telegramId) return
 	const user = await getUserByTelegramId(db, telegramId)
 	if (!user) return
+	const connection = await getConnection(db, user.id, "jira")
+	if (!connection) {
+		await ctx.answerCallbackQuery({ text: ctx.t("errors.unauthorized") })
+		return
+	}
 	try {
+		const adapter = sourceRegistry.require("jira")
+		const result = await adapter.subscriptions.create(
+			{ type: "oauth", ...connection.credentials },
+			{
+				providerScopeId: projectKey,
+				callbackUrl: `${env.PUBLIC_BASE_URL}/webhooks/jira`,
+			},
+		)
 		const sub = await createSubscription(db, {
 			userId: user.id,
 			provider: "jira",
 			providerScopeId: projectKey,
 			displayName: projectKey,
+			webhookSecret: result.webhookSecret ?? null,
 		})
 		await ctx.answerCallbackQuery({ text: ctx.t("jiraProjects.added", { key: projectKey }) })
 		const oldBtn = ctx.callbackQuery.message?.reply_markup?.inline_keyboard
