@@ -20,6 +20,7 @@ const skip = !integrationDbUrl
 
 interface MockCallbackContext {
 	from: { id: number }
+	t: (key: string, params?: Record<string, string | number>) => string
 	answerCallbackQuery: ReturnType<typeof vi.fn>
 	editMessageText: ReturnType<typeof vi.fn>
 	deleteMessage: ReturnType<typeof vi.fn>
@@ -27,6 +28,7 @@ interface MockCallbackContext {
 
 const makeCtx = (telegramId: number): MockCallbackContext => ({
 	from: { id: telegramId },
+	t: (key) => key,
 	answerCallbackQuery: vi.fn().mockResolvedValue(undefined),
 	editMessageText: vi.fn().mockResolvedValue(undefined),
 	deleteMessage: vi.fn().mockResolvedValue(undefined),
@@ -103,7 +105,7 @@ describe.skipIf(skip)("/unsubscribe cascade via bot callback", () => {
 
 		expect(ctx.answerCallbackQuery).toHaveBeenCalled()
 		const cbArg = ctx.answerCallbackQuery.mock.calls[0]![0] as { text?: string } | undefined
-		expect(cbArg?.text).toContain("Cancelled")
+		expect(cbArg?.text).toBe("hubV2.account.cancelledToast")
 
 		const [stillThere] = await db.select().from(usersTable).where(eq(usersTable.id, user.id))
 		expect(stillThere).toBeDefined()
@@ -123,6 +125,6 @@ describe.skipIf(skip)("/unsubscribe cascade via bot callback", () => {
 
 		expect(ctx.answerCallbackQuery).toHaveBeenCalled()
 		const cbArg = ctx.answerCallbackQuery.mock.calls[0]![0] as { text?: string } | undefined
-		expect(cbArg?.text).toContain("Already deleted")
+		expect(cbArg?.text).toBe("hubV2.account.alreadyDeletedToast")
 	})
 })

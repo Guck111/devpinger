@@ -18,25 +18,12 @@ const EXPORT_LIMIT_EVENTS = 1000
 
 export const handleUnsubscribeCommand = async (ctx: CommandContext<BotContext>): Promise<void> => {
 	const kb = new InlineKeyboard()
-		.text("⚠️ Yes, delete everything", "account:delete:confirm")
-		.text("Cancel", "account:delete:cancel")
-	await ctx.reply(
-		[
-			"⚠️ <b>Delete your DevPinger account?</b>",
-			"",
-			"This will permanently remove:",
-			"• your Telegram → DevPinger profile",
-			"• every GitHub and Jira connection (tokens are wiped)",
-			"• every repository and project subscription",
-			"• your full event history",
-			"• every mute rule",
-			"",
-			"Webhooks that DevPinger created on your GitHub repos will keep firing until you delete them in <i>Settings → Webhooks</i> on each repo — that's expected.",
-			"",
-			"This cannot be undone.",
-		].join("\n"),
-		{ parse_mode: "HTML", reply_markup: kb },
-	)
+		.text(ctx.t("hubV2.account.confirmDeleteYes"), "account:delete:confirm")
+		.text(ctx.t("hubV2.account.confirmDeleteNo"), "account:delete:cancel")
+	await ctx.reply(ctx.t("hubV2.account.confirmDeleteText"), {
+		parse_mode: "HTML",
+		reply_markup: kb,
+	})
 }
 
 export const handleDeleteConfirm = async (ctx: CallbackQueryContext<BotContext>): Promise<void> => {
@@ -47,9 +34,9 @@ export const handleDeleteConfirm = async (ctx: CallbackQueryContext<BotContext>)
 	}
 	const user = await getUserByTelegramId(db, telegramId)
 	if (!user) {
-		await ctx.answerCallbackQuery({ text: "Already deleted." })
+		await ctx.answerCallbackQuery({ text: ctx.t("hubV2.account.alreadyDeletedToast") })
 		try {
-			await ctx.editMessageText("Already deleted. Send /start to begin again.")
+			await ctx.editMessageText(ctx.t("hubV2.account.alreadyDeletedText"))
 		} catch {
 			// best effort
 		}
@@ -59,14 +46,12 @@ export const handleDeleteConfirm = async (ctx: CallbackQueryContext<BotContext>)
 		await db.delete(usersTable).where(eq(usersTable.id, user.id))
 	} catch (err) {
 		logger.error({ err, userId: user.id }, "account delete failed")
-		await ctx.answerCallbackQuery({ text: "Delete failed — try again." })
+		await ctx.answerCallbackQuery({ text: ctx.t("hubV2.account.deleteFailedToast") })
 		return
 	}
-	await ctx.answerCallbackQuery({ text: "Account deleted." })
+	await ctx.answerCallbackQuery({ text: ctx.t("hubV2.account.deletedToast") })
 	try {
-		await ctx.editMessageText(
-			"👋 Your account has been deleted. Webhooks on your repos may still fire until you remove them. Send /start to begin again.",
-		)
+		await ctx.editMessageText(ctx.t("hubV2.account.deletedText"))
 	} catch {
 		// best effort
 	}
@@ -74,7 +59,7 @@ export const handleDeleteConfirm = async (ctx: CallbackQueryContext<BotContext>)
 }
 
 export const handleDeleteCancel = async (ctx: CallbackQueryContext<BotContext>): Promise<void> => {
-	await ctx.answerCallbackQuery({ text: "Cancelled." })
+	await ctx.answerCallbackQuery({ text: ctx.t("hubV2.account.cancelledToast") })
 	try {
 		await ctx.deleteMessage()
 	} catch {
@@ -136,7 +121,7 @@ export const handleExportCommand = async (ctx: CommandContext<BotContext>): Prom
 	if (!telegramId) return
 	const user = await getUserByTelegramId(db, telegramId)
 	if (!user) {
-		await ctx.reply("Nothing to export — you don't have an account yet. Send /start.")
+		await ctx.reply(ctx.t("hubV2.account.exportEmpty"))
 		return
 	}
 
@@ -204,7 +189,10 @@ export const handleExportCommand = async (ctx: CommandContext<BotContext>): Prom
 	const buffer = Buffer.from(JSON.stringify(payload, null, 2), "utf8")
 	const fname = `devpinger-export-${user.id.slice(0, 8)}-${Date.now()}.json`
 	await ctx.replyWithDocument(new InputFile(buffer, fname), {
-		caption: `Export of ${events.length} events + metadata. Up to the last ${EXPORT_LIMIT_EVENTS} events are included.`,
+		caption: ctx.t("hubV2.account.exportCaption", {
+			events: events.length,
+			limit: EXPORT_LIMIT_EVENTS,
+		}),
 	})
 }
 
@@ -216,9 +204,7 @@ export const handleForgetEventCommand = async (ctx: CommandContext<BotContext>):
 
 	const arg = ctx.match?.toString().trim() ?? ""
 	if (!arg) {
-		await ctx.reply(
-			"Usage: /forget_event <event-id>\n\nThe id is the UUID in event callback buttons (e.g. act:approve:<id>). Use /recent or /export to look it up.",
-		)
+		await ctx.reply(ctx.t("hubV2.account.forgetEventUsage"))
 		return
 	}
 
@@ -228,8 +214,8 @@ export const handleForgetEventCommand = async (ctx: CommandContext<BotContext>):
 		.returning({ id: eventsTable.id })
 
 	if (result.length === 0) {
-		await ctx.reply("No such event in your history.")
+		await ctx.reply(ctx.t("hubV2.account.forgetEventNotFound"))
 		return
 	}
-	await ctx.reply(`🗑 Event ${arg} forgotten.`)
+	await ctx.reply(ctx.t("hubV2.account.forgetEventDone", { id: arg }))
 }

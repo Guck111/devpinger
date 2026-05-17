@@ -43,7 +43,21 @@
 		"account": {
 			"title": "👤 <b>Account</b>",
 			"export": "📤 Export data",
-			"delete": "🗑 Delete account"
+			"delete": "🗑 Delete account",
+			"confirmDeleteText": "⚠️ <b>Delete your DevPinger account?</b>\n\nThis will permanently remove:\n• your Telegram → DevPinger profile\n• every GitHub and Jira connection (tokens are wiped)\n• every repository and project subscription\n• your full event history\n• every mute rule\n\nWebhooks that DevPinger created on your GitHub repos will keep firing until you delete them in <i>Settings → Webhooks</i> on each repo — that's expected.\n\nThis cannot be undone.",
+			"confirmDeleteYes": "⚠️ Yes, delete everything",
+			"confirmDeleteNo": "Cancel",
+			"deletedToast": "Account deleted.",
+			"deletedText": "👋 Your account has been deleted. Webhooks on your repos may still fire until you remove them. Send /start to begin again.",
+			"alreadyDeletedToast": "Already deleted.",
+			"alreadyDeletedText": "Already deleted. Send /start to begin again.",
+			"deleteFailedToast": "Delete failed — try again.",
+			"cancelledToast": "Cancelled.",
+			"exportEmpty": "Nothing to export — you don't have an account yet. Send /start.",
+			"exportCaption": "Export of {events} events + metadata. Up to the last {limit} events are included.",
+			"forgetEventUsage": "Usage: /forget_event <event-id>\n\nThe id is the UUID in event callback buttons (e.g. act:approve:<id>). Use /recent or /export to look it up.",
+			"forgetEventNotFound": "No such event in your history.",
+			"forgetEventDone": "🗑 Event {id} forgotten."
 		},
 		"back": "← Back",
 		"close": "✖ Close",

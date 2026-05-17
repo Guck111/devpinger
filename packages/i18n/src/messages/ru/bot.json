@@ -43,7 +43,21 @@
 		"account": {
 			"title": "👤 <b>Аккаунт</b>",
 			"export": "📤 Экспорт данных",
-			"delete": "🗑 Удалить аккаунт"
+			"delete": "🗑 Удалить аккаунт",
+			"confirmDeleteText": "⚠️ <b>Удалить аккаунт DevPinger?</b>\n\nЭто безвозвратно удалит:\n• твой профиль Telegram → DevPinger\n• все подключения GitHub и Jira (токены стираются)\n• все подписки на репозитории и проекты\n• всю историю событий\n• все правила мьютов\n\nWebhooks, которые DevPinger создал на твоих репозиториях, продолжат срабатывать, пока ты не удалишь их в <i>Settings → Webhooks</i> каждого репо — это нормально.\n\nЭто нельзя откатить.",
+			"confirmDeleteYes": "⚠️ Да, удалить всё",
+			"confirmDeleteNo": "Отмена",
+			"deletedToast": "Аккаунт удалён.",
+			"deletedText": "👋 Твой аккаунт удалён. Webhooks на репозиториях могут продолжать срабатывать, пока ты не удалишь их вручную. Отправь /start чтобы начать заново.",
+			"alreadyDeletedToast": "Уже удалён.",
+			"alreadyDeletedText": "Уже удалён. Отправь /start чтобы начать заново.",
+			"deleteFailedToast": "Не получилось удалить — попробуй ещё раз.",
+			"cancelledToast": "Отменено.",
+			"exportEmpty": "Нечего экспортировать — у тебя ещё нет аккаунта. Отправь /start.",
+			"exportCaption": "Экспорт: {events} событий + метаданные. Включено до последних {limit} событий.",
+			"forgetEventUsage": "Использование: /forget_event <event-id>\n\nID — это UUID в callback-кнопках события (например, act:approve:<id>). Найди через /recent или /export.",
+			"forgetEventNotFound": "Такого события нет в твоей истории.",
+			"forgetEventDone": "🗑 Событие {id} забыто."
 		},
 		"back": "← Назад",
 		"close": "✖ Закрыть",
