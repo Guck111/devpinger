@@ -29,7 +29,11 @@ const serverEnvSchema = z.object({
 	// Comma-separated list of origins allowed to call public landing endpoints
 	// (POST /v1/landing/subscribe). Browser cross-origin only — webhooks server-to-server
 	// pass without an Origin header and are unaffected.
-	LANDING_ALLOWED_ORIGINS: z.string().default("https://devpinger.com,http://localhost:4321"),
+	LANDING_ALLOWED_ORIGINS: z
+		.string()
+		.default(
+			"https://devpinger.com,https://www.devpinger.com,https://preorder.devpinger.com,http://localhost:4321",
+		),
 	// Stripe webhook signing secret (whsec_…). Required to verify checkout.session.completed
 	// events from the preorder Payment Link. Optional in dev — without it /v1/stripe/webhook
 	// returns 503 instead of accepting unverified payloads.
