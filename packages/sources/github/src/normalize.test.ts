@@ -111,4 +111,83 @@ describe("normalizeEvent (GitHub)", () => {
 		expect(result?.priority).toBe("high")
 		expect(result?.type).toBe("workflow_run.failure")
 	})
+
+	const pushPayload = (overrides: Record<string, unknown> = {}) => ({
+		ref: "refs/heads/main",
+		forced: false,
+		compare: "https://github.com/acme/backend/compare/aaa...bbb",
+		repository: { ...baseRepo, default_branch: "main" },
+		sender: baseSender,
+		pusher: { name: "alice", email: "alice@example.com" },
+		commits: [{ id: "bbb", message: "Fix typo" }],
+		head_commit: {
+			id: "bbb",
+			message: "Fix typo",
+			committer: { username: "alice", name: "Alice" },
+		},
+		...overrides,
+	})
+
+	it("emits push.direct on default branch", () => {
+		const result = normalizeEvent({
+			eventType: "push",
+			deliveryId: "d-push-1",
+			viewerLogin: "arseni",
+			payload: pushPayload(),
+		})
+		expect(result).not.toBeNull()
+		expect(result?.type).toBe("push.direct")
+		expect(result?.priority).toBe("medium")
+		expect(result?.title).toContain("Direct push to main")
+		expect(result?.title).toContain("1 commit")
+		expect(result?.url).toBe("https://github.com/acme/backend/compare/aaa...bbb")
+	})
+
+	it("emits push.forced as high priority", () => {
+		const result = normalizeEvent({
+			eventType: "push",
+			deliveryId: "d-push-2",
+			viewerLogin: "arseni",
+			payload: pushPayload({ forced: true }),
+		})
+		expect(result?.type).toBe("push.forced")
+		expect(result?.priority).toBe("high")
+		expect(result?.title).toContain("Force push to main")
+	})
+
+	it("ignores pushes to non-default branches", () => {
+		const result = normalizeEvent({
+			eventType: "push",
+			deliveryId: "d-push-3",
+			viewerLogin: "arseni",
+			payload: pushPayload({ ref: "refs/heads/feature/foo" }),
+		})
+		expect(result).toBeNull()
+	})
+
+	it("ignores pushes with zero commits (branch create/delete)", () => {
+		const result = normalizeEvent({
+			eventType: "push",
+			deliveryId: "d-push-4",
+			viewerLogin: "arseni",
+			payload: pushPayload({ commits: [], head_commit: null }),
+		})
+		expect(result).toBeNull()
+	})
+
+	it("ignores merge-commits authored by the GitHub UI (web-flow)", () => {
+		const result = normalizeEvent({
+			eventType: "push",
+			deliveryId: "d-push-5",
+			viewerLogin: "arseni",
+			payload: pushPayload({
+				head_commit: {
+					id: "bbb",
+					message: "Merge pull request #42 from acme/feature",
+					committer: { username: "web-flow", name: "GitHub" },
+				},
+			}),
+		})
+		expect(result).toBeNull()
+	})
 })

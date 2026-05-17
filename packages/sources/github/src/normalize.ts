@@ -52,6 +52,13 @@ export interface GithubSecurityAdvisoryMeta {
 	severity: string
 	ghsaId: string
 }
+export interface GithubPushMeta {
+	ref: string
+	branch: string
+	commitCount: number
+	forced: boolean
+	headSha: string
+}
 
 export type GithubEventMetadata =
 	| GithubPullRequestMeta
@@ -61,6 +68,7 @@ export type GithubEventMetadata =
 	| GithubReleaseMeta
 	| GithubWorkflowRunMeta
 	| GithubSecurityAdvisoryMeta
+	| GithubPushMeta
 
 const SUPPORTED_EVENTS = new Set([
 	"pull_request",
@@ -71,6 +79,7 @@ const SUPPORTED_EVENTS = new Set([
 	"release",
 	"workflow_run",
 	"security_advisory",
+	"push",
 ])
 
 const HIGH_PRIORITY_PR_ACTIONS = new Set(["review_requested", "ready_for_review"])
@@ -271,6 +280,47 @@ export const normalizeEvent = (input: NormalizeInput): NormalizedEvent | null =>
 				workflow: run.name,
 				branch: run.head_branch,
 				attempt: run.run_attempt,
+			},
+			createdAt: new Date(),
+		}
+	}
+
+	if (eventType === "push") {
+		// Only surface pushes that land on the repo's default branch — feature
+		// branches are noisy and usually represented by the PR event chain.
+		const ref = String(payload.ref ?? "")
+		const defaultBranch = payload.repository?.default_branch
+		if (!defaultBranch || ref !== `refs/heads/${defaultBranch}`) return null
+
+		// Branch creation/deletion push events report all=0 commits — skip them.
+		const commits = Array.isArray(payload.commits) ? payload.commits : []
+		if (commits.length === 0) return null
+
+		// Skip pushes that originated from the GitHub merge UI — the PR's
+		// `pull_request.closed` event already covered the same change.
+		const headCommit = payload.head_commit
+		if (headCommit?.committer?.username === "web-flow") return null
+
+		const forced = Boolean(payload.forced)
+		const branch = defaultBranch as string
+		const headSha = String(headCommit?.id ?? payload.after ?? "")
+		const titlePrefix = forced ? "Force push" : "Direct push"
+		return {
+			source: "github",
+			sourceEventId: `${eventType}:${deliveryId}`,
+			type: forced ? "push.forced" : "push.direct",
+			priority: forced ? "high" : "medium",
+			title: `${titlePrefix} to ${branch} · ${commits.length} commit${commits.length === 1 ? "" : "s"} — ${repo?.fullName ?? "?"}`,
+			bodyPreview: truncate(headCommit?.message, 240),
+			url: payload.compare ?? repo?.url ?? "",
+			repo,
+			actor,
+			metadata: {
+				ref,
+				branch,
+				commitCount: commits.length,
+				forced,
+				headSha,
 			},
 			createdAt: new Date(),
 		}

@@ -21,6 +21,7 @@ const WEBHOOK_EVENTS = [
 	"issue_comment",
 	"release",
 	"workflow_run",
+	"push",
 ]
 
 export const setupRepoWebhook = async (
