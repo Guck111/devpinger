@@ -2,6 +2,12 @@
 
 GitHub pull requests and Jira issues, delivered to one Telegram inbox.
 
+[![Preorder $9 lifetime](https://img.shields.io/badge/preorder-%249%20lifetime%20%C2%B7%2030%20seats-2563eb?style=flat-square)](https://preorder.devpinger.com)
+[![Telegram](https://img.shields.io/badge/telegram-%40dev__pinger__bot-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/dev_pinger_bot)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+
+> **Currently in preorder** — 30 lifetime seats at $9. After that $19/mo. See [preorder.devpinger.com](https://preorder.devpinger.com).
+
 [**Open the bot →**](https://t.me/dev_pinger_bot) `@dev_pinger_bot`
 
 Tap `/start`, connect GitHub, optionally connect Jira. Events arrive in your
