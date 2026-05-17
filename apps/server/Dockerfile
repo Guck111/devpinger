@@ -24,6 +24,10 @@ COPY --from=deps /app /app
 COPY apps/server apps/server
 COPY packages packages
 RUN apk add --no-cache curl tini
+# Drop privileges. node:22-alpine ships a "node" user (uid 1000); reuse it
+# instead of running as root so a Node-process RCE doesn't give container root.
+RUN chown -R node:node /app
+USER node
 ENV NODE_ENV=production
 WORKDIR /app/apps/server
 EXPOSE 3001

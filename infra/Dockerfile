@@ -41,7 +41,11 @@ RUN apt-get update -qq && \
 	rm -rf /var/lib/apt/lists/*
 
 ENV NODE_ENV=production
-COPY --from=builder /out/server .
+COPY --from=builder --chown=node:node /out/server .
+
+# Drop privileges. node:22-slim ships a "node" user (uid 1000); reuse it so a
+# Node-process RCE doesn't give container root.
+USER node
 
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
@@ -60,7 +64,10 @@ RUN apt-get update -qq && \
 	rm -rf /var/lib/apt/lists/*
 
 ENV NODE_ENV=production
-COPY --from=builder /out/worker .
+COPY --from=builder --chown=node:node /out/worker .
+
+# Drop privileges (same rationale as the server stage).
+USER node
 
 ENTRYPOINT ["tini", "--"]
 CMD ["node", "dist/index.js"]
