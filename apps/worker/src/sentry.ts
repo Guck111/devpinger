@@ -5,6 +5,27 @@ import { logger } from "./logger.js"
 
 let initialised = false
 
+// Drop fields that can carry webhook payloads / PII before the event leaves
+// the process. The worker doesn't see HTTP requests, but BullMQ job data
+// frequently lands in event.extra; strip body/payload entries defensively.
+const stripUntrustedFields = (event: Sentry.ErrorEvent): Sentry.ErrorEvent => {
+	if (event.extra) {
+		delete event.extra.body
+		delete event.extra.rawBody
+		delete event.extra.payload
+	}
+	if (event.breadcrumbs) {
+		for (const b of event.breadcrumbs) {
+			if (b.data) {
+				delete b.data.body
+				delete b.data.payload
+				if (typeof b.data.url === "string") b.data.url = String(redact(b.data.url))
+			}
+		}
+	}
+	return event
+}
+
 export const initSentry = (): void => {
 	if (initialised) return
 	if (!env.SENTRY_DSN) {
@@ -16,6 +37,8 @@ export const initSentry = (): void => {
 		environment: env.NODE_ENV,
 		tracesSampleRate: env.NODE_ENV === "production" ? 0.1 : 0,
 		serverName: "devpinger-worker",
+		sendDefaultPii: false,
+		beforeSend: stripUntrustedFields,
 	})
 	initialised = true
 	logger.info({ environment: env.NODE_ENV }, "Sentry initialised")

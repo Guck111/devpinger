@@ -5,6 +5,37 @@ import { logger } from "./logger.js"
 
 let initialised = false
 
+// Drop fields that can carry webhook payloads / PII before the event leaves
+// the process. Sentry's fastify integration normally forwards request bodies,
+// query strings, and cookies on captured exceptions; for a Jira-webhook ingest
+// failure that would smuggle the per-tenant secret (?secret=...) and the
+// payload into a third-party service.
+const stripUntrustedFields = (event: Sentry.ErrorEvent): Sentry.ErrorEvent => {
+	if (event.request) {
+		event.request.data = undefined
+		event.request.cookies = undefined
+		event.request.query_string = undefined
+		if (typeof event.request.url === "string") {
+			event.request.url = String(redact(event.request.url))
+		}
+	}
+	if (event.extra) {
+		delete event.extra.body
+		delete event.extra.rawBody
+		delete event.extra.payload
+	}
+	if (event.breadcrumbs) {
+		for (const b of event.breadcrumbs) {
+			if (b.data) {
+				delete b.data.body
+				delete b.data.payload
+				if (typeof b.data.url === "string") b.data.url = String(redact(b.data.url))
+			}
+		}
+	}
+	return event
+}
+
 export const initSentry = (): void => {
 	if (initialised) return
 	if (!env.SENTRY_DSN) {
@@ -16,7 +47,9 @@ export const initSentry = (): void => {
 		environment: env.NODE_ENV,
 		tracesSampleRate: env.NODE_ENV === "production" ? 0.1 : 0,
 		serverName: "devpinger-server",
+		sendDefaultPii: false,
 		integrations: [Sentry.fastifyIntegration()],
+		beforeSend: stripUntrustedFields,
 	})
 	initialised = true
 	logger.info({ environment: env.NODE_ENV }, "Sentry initialised")

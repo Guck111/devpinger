@@ -17,6 +17,16 @@ describe("redact", () => {
 		)
 	})
 
+	it("masks the value of a Jira ?secret=... query parameter", () => {
+		const url = "POST /webhooks/jira/conn-123?secret=TENANT_SECRET_XYZ failed"
+		expect(redact(url)).toBe("POST /webhooks/jira/conn-123?secret=[REDACTED] failed")
+	})
+
+	it("masks &secret= when it isn't the first query parameter", () => {
+		const url = "/webhooks/jira/conn?foo=bar&secret=ABC123 boom"
+		expect(redact(url)).toBe("/webhooks/jira/conn?foo=bar&secret=[REDACTED] boom")
+	})
+
 	it("passes through unrelated text untouched", () => {
 		expect(redact("just a regular error message")).toBe("just a regular error message")
 	})
