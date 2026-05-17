@@ -9,7 +9,7 @@ interface Props {
 
 const { title, description, path, ru = {}, noindex = false } = Astro.props;
 const canonical = `https://preorder.devpinger.com${path}`;
-const plausibleDomain = import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN;
+const goatcounterCode = import.meta.env.PUBLIC_GOATCOUNTER_CODE;
 ---
 <!doctype html>
 <html lang="en">
@@ -36,10 +36,22 @@ const plausibleDomain = import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN;
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-{plausibleDomain && (
+{goatcounterCode && (
   <>
-    <script is:inline defer data-domain={plausibleDomain} src="https://plausible.io/js/script.tagged-events.outbound-links.js"></script>
-    <script is:inline set:html={`window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}`}></script>
+    <script is:inline async data-goatcounter={`https://${goatcounterCode}.goatcounter.com/count`} src="https://gc.zgo.at/count.js"></script>
+    <script is:inline set:html={`
+      document.addEventListener('click', (e) => {
+        const link = e.target && e.target.closest && e.target.closest('a[href]');
+        if (!link) return;
+        try {
+          const u = new URL(link.href, location.href);
+          if (u.host === location.host) return;
+          if (window.goatcounter && typeof window.goatcounter.count === 'function') {
+            window.goatcounter.count({ path: 'outbound: ' + u.host + u.pathname, event: true });
+          }
+        } catch (_e) {}
+      }, true);
+    `}></script>
   </>
 )}
 
