@@ -118,6 +118,10 @@ registerHub(bot, {
 bot.callbackQuery(/^hub:conn:open:(repos|projects)$/, async (ctx) => {
 	await ctx.answerCallbackQuery()
 	const target = ctx.match?.[1]
+	// ctx.match here is the RegExpMatchArray from the callback_data; the
+	// repo/project handlers read ctx.match as a search query, so reset it
+	// before delegating to avoid "hub:conn:open:repos" becoming a search term.
+	;(ctx as unknown as { match: string }).match = ""
 	if (target === "repos") {
 		await handleReposCommand(ctx as unknown as Parameters<typeof handleReposCommand>[0])
 	} else if (target === "projects") {
