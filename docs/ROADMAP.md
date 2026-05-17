@@ -1,9 +1,11 @@
 # Roadmap
 
-DevPinger's plan is to ship a focused V1 today, layer a private "Cloud"
-edition on top for paid features, and broaden the source / destination
-catalog over time. Everything that touches money lives in a separate
-private repo; this public repo stays MIT.
+DevPinger ships a focused V1 today and layers a private "Cloud" edition
+on top for paid Pro features. This public repo is MIT and contains the
+full GitHub + Jira product plus the preorder/landing infrastructure
+needed to run the public smoke-test. Pro-tier billing enforcement
+(subscriptions, plan-gating, `/billing` UI) lives in a separate private
+repo and imports `@devpinger/*` from here.
 
 ## V1 (this repo) — shipped
 
@@ -16,7 +18,12 @@ private repo; this public repo stays MIT.
   self-suppression of the user's own actions
 - Snooze (1h / 4h / 1d), recent events, stats
 - Plans schema (`free` / `personal` / `pro` / `team`) with
-  `noopPlanGate` — V1 ships with no paywall
+  `noopPlanGate` — V1 ships with no Pro-tier enforcement
+- **Preorder landing infrastructure** — `preorders` table, Stripe
+  webhook for `checkout.session.completed` events from the
+  $9 lifetime Payment Link, `landing_subscribers` table for
+  email signups, public landing endpoints (`/v1/landing/*`,
+  `/v1/stripe/webhook`). Used to validate demand before V2.
 
 ## V1.5 — Microsoft Teams source
 
@@ -39,8 +46,10 @@ this repo and extends it through the existing extension points:
 - **Additional sources** — GitLab, Sentry, Linear
 
 Migrations are additive: V2 adds `0001_billing.sql`, `0002_digest.sql`,
-etc. on top of V1's `0000_initial.sql`. The public schema never carries
-Stripe columns.
+etc. on top of V1's existing migrations. V2 schema additions
+(subscriptions, invoices, plan-enforcement state) live in the private
+repo's migration set — the public `preorders` table records only one-time
+preorder receipts and is independent from V2 recurring billing.
 
 ## V3 (private repo continued)
 
@@ -68,16 +77,25 @@ Forking V1 is never required:
   registers `/upgrade`, `/billing`, etc. after `createApp` returns
 - I18n: `createTranslator(extraMessages?)` accepts additional keys
 
-## What never lands in V1
+## What lives where
 
-To keep the licensing line crisp, the public repo stays free of any of
-the following — even as stubs:
+**Public (this repo, MIT):**
+- Full GitHub + Jira product (ingest, actions, notifications, GDPR)
+- Plan-schema scaffolding with `noopPlanGate` (no Pro enforcement)
+- Preorder landing surface: `preorders` table, `STRIPE_WEBHOOK_SECRET`
+  env, `/v1/stripe/webhook` for `checkout.session.completed`, the
+  `/v1/landing/*` endpoints. These exist so the public managed deploy
+  can accept one-time $9 lifetime preorders.
 
-- Stripe imports or env variables
-- `stripe_*` columns or tables
-- `/billing/*` routes
-- AI client code or `ANTHROPIC_API_KEY`
-- Email transports or addresses
-- Team / workspace tables
+**Private (`devpinger-cloud` repo, closed):**
+- Recurring Stripe billing — customers, subscriptions, invoices,
+  webhook handlers for `invoice.*` / `customer.subscription.*`
+- `stripePlanGate` that enforces `PLAN_LIMITS` (replaces `noopPlanGate`)
+- `/billing/*` HTTP routes and `/upgrade` / `/billing` bot commands
+- AI digest code (`@devpinger/ai`, `ANTHROPIC_API_KEY`)
+- Email transports for digests and password-reset-style flows
+- Team / workspace tables (Team plan, $39/mo)
 
-If a feature touches money or revenue, it ships in the private repo.
+The line: one-time preorder logic is public because it's the smoke
+test for a managed service. Recurring billing and Pro-tier enforcement
+ship private.
