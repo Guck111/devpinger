@@ -141,8 +141,18 @@ describe.skipIf(skip)("POST /v1/stripe/webhook + GET /v1/landing/seats", () => {
 			"content-type": "application/json",
 			"stripe-signature": `t=${ts},v1=${sign(ts, body)}`,
 		}
-		const first = await app.inject({ method: "POST", url: "/v1/stripe/webhook", headers, payload: body })
-		const second = await app.inject({ method: "POST", url: "/v1/stripe/webhook", headers, payload: body })
+		const first = await app.inject({
+			method: "POST",
+			url: "/v1/stripe/webhook",
+			headers,
+			payload: body,
+		})
+		const second = await app.inject({
+			method: "POST",
+			url: "/v1/stripe/webhook",
+			headers,
+			payload: body,
+		})
 		expect(first.statusCode).toBe(200)
 		expect(second.statusCode).toBe(200)
 		const rows = await db

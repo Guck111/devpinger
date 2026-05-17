@@ -94,7 +94,10 @@ export const stripeWebhookRoutes = async (app: FastifyInstance) => {
 			// We only care about checkout.session.completed for the preorder. Acknowledge
 			// other event types so Stripe stops retrying them.
 			if (envelope.data.type !== "checkout.session.completed") {
-				logger.info({ type: envelope.data.type, eventId: envelope.data.id }, "stripe.webhook.ignored")
+				logger.info(
+					{ type: envelope.data.type, eventId: envelope.data.id },
+					"stripe.webhook.ignored",
+				)
 				return reply.code(200).send({ ok: true, ignored: true })
 			}
 
@@ -155,9 +158,7 @@ export const stripeWebhookRoutes = async (app: FastifyInstance) => {
 					const amount = (amountCents / 100).toFixed(2)
 					const tgLine = telegramUsername ? `\nTelegram: @${telegramUsername}` : ""
 					await notifyAdmin(
-						escapeMd(
-							`🎉 New preorder\n${email}\n${amount} ${currency.toUpperCase()}${tgLine}`,
-						),
+						escapeMd(`🎉 New preorder\n${email}\n${amount} ${currency.toUpperCase()}${tgLine}`),
 					)
 				}
 
