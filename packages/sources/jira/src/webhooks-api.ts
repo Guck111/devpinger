@@ -15,12 +15,16 @@ import { JiraApiError, type JiraClient } from "./client.js"
 //
 // IMPORTANT: this is the allow-list for `POST /rest/api/3/webhook`
 // (Dynamic Webhooks). The accepted set is much narrower than what the
-// older Connect-app webhook surface accepts. As of the v3 API, only
-// `worklog_updated` is a valid worklog event — `worklog_created` and
-// `worklog_deleted` are rejected as "Invalid event ids" by Atlassian,
-// which causes the whole registration call to return zero webhook ids
-// and leaves the subscription registered on our side with an empty
-// webhook id list (i.e. silently broken — no events ever arrive).
+// older Connect-app webhook surface and Atlassian's public docs imply.
+// Empirically, every `worklog_*` event (including `worklog_updated`,
+// which the docs list as valid) is rejected with "Invalid event ids"
+// when sent through /rest/api/3/webhook — and because the API treats
+// the registration as all-or-nothing, a single invalid event kills the
+// whole call, returning zero createdWebhookId entries and leaving our
+// subscription row with an empty webhook id list (silently broken —
+// no events ever arrive). So we omit worklog events entirely until
+// Atlassian fixes the gap; the worklog handlers in normalize.ts are
+// kept as defensive code in case that changes.
 // See https://developer.atlassian.com/cloud/jira/platform/webhooks/#registering-events-for-a-webhook
 export const DEFAULT_JIRA_WEBHOOK_EVENTS = [
 	"jira:issue_created",
@@ -29,7 +33,6 @@ export const DEFAULT_JIRA_WEBHOOK_EVENTS = [
 	"comment_created",
 	"comment_updated",
 	"comment_deleted",
-	"worklog_updated",
 ] as const
 
 export interface JiraWebhookRegistration {
