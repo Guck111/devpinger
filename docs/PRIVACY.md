@@ -27,8 +27,13 @@ What's **never** stored:
 
 ## How long it's kept
 
-- **Events** older than 30 days are automatically pruned by the cleanup worker
-  (`apps/worker/src/queues/cleanup.ts`).
+- **Events** are pruned by the daily cleanup worker
+  (`apps/worker/src/queues/cleanup.ts`). The retention window is plan-driven
+  per `packages/core/src/plans.ts`:
+  - `free`: 7 days
+  - `personal`: 90 days
+  - `pro` / `team`: 365 days
+  You can delete individual events sooner with `/forget_event <id>`.
 - **OAuth state rows** older than 10 minutes are pruned by the OAuth-state
   cleanup worker.
 - **Everything else** stays as long as your account exists.
