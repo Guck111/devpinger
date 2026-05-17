@@ -83,6 +83,38 @@ await adapter.actions.approve(credentials, { scope: "owner/repo", number: 42 })
 `actions` are the same map the adapter exports in source.ts. New
 provider actions show up automatically in the bot.
 
+### Inline-keyboard / callback_data constraints
+
+Telegram enforces several hard limits on inline keyboards that bite
+silently — a single bad button kills the whole `sendMessage` call with
+`400 Bad Request: BUTTON_DATA_INVALID`, the bot crashes inside the
+callback handler, and from the user side every button looks dead.
+Keep these in mind whenever you add or change a callback:
+
+- **`callback_data` ≤ 64 bytes (UTF-8).** Not 64 chars — 64 bytes after
+  encoding. Plan the prefix carefully: a 36-byte UUID leaves only 28
+  bytes for the rest. If the handler needs an event/issue id longer
+  than what fits, **do not encode it in `callback_data`** — look it up
+  in DB by user context or stash it in Redis with a short key.
+- **Separator collisions.** We use `:` to split callback segments
+  (`act:approve:<eventId>`, `hub:conn:disconnect:github`). Jira event
+  types contain colons themselves (`jira:issue_created`), so any
+  callback that puts a Jira type in the middle of a `:`-split string
+  will mis-parse. Use `:` only as the outer segment separator; if a
+  segment can contain `:`, put it last so the regex can consume the
+  rest with `(.+)$`.
+- **Button label ≤ 64 chars.** Long labels truncate silently in
+  Telegram clients.
+- **Don't pre-bake state that has a short TTL.** OAuth start links are
+  generated only on tap (`hub:conn:connect:<provider>` callback) so
+  the signed link with its 5-minute TTL is minted fresh; embedding it
+  at render time exposes a stale link in chat history.
+
+When adding a new callback: write down the longest legitimate payload
+on paper, byte-count it (including all variable substitutions), and
+keep it under 64. The `format.ts` and `actions.ts` files have working
+patterns to copy.
+
 ## Multi-user webhook routing
 
 GitHub delivers all webhooks to one endpoint
