@@ -20,8 +20,8 @@ api.devpinger.com {
 	}
 
 	# Surface only the routes that should be public.
-	# Webhooks, OAuth callbacks, Telegram, landing subscribe, health.
-	@public path /health /ready /v1/landing/* /webhooks/* /oauth/* /telegram/*
+	# Webhooks, OAuth callbacks, Telegram, landing subscribe/seats, Stripe webhook, health.
+	@public path /health /ready /v1/landing/* /v1/stripe/* /webhooks/* /oauth/* /telegram/*
 	handle @public {
 		reverse_proxy server:3001
 	}
