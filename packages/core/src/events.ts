@@ -134,8 +134,13 @@ const SELF_SUPPRESSIBLE_EXACT = new Set<string>([
 	"worklog_updated",
 	"worklog_deleted",
 ])
+// Creation events are intentional task-inbox signals — surface them even
+// when the user is the actor (e.g. opening a Jira ticket and assigning it
+// to yourself is a real "do this" signal, not an echo you'd see elsewhere).
+const SELF_SUPPRESSIBLE_NEVER = new Set<string>(["jira:issue_created"])
 
 export const isSelfSuppressibleEventType = (eventType: string): boolean => {
+	if (SELF_SUPPRESSIBLE_NEVER.has(eventType)) return false
 	if (SELF_SUPPRESSIBLE_EXACT.has(eventType)) return true
 	return SELF_SUPPRESSIBLE_PREFIXES.some((prefix) => eventType.startsWith(prefix))
 }

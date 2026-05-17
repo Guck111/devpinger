@@ -110,6 +110,15 @@ describe("isUserOwnEvent", () => {
 		})
 		expect(isUserOwnEvent(event, connection("github"))).toBe(false)
 	})
+
+	it("jira:issue_created is NEVER self-suppressible — task-inbox signal even when self-assigned", () => {
+		const event = baseEvent({
+			source: "jira",
+			type: "jira:issue_created",
+			actor: { id: "viewer-abc", username: "viewer" },
+		})
+		expect(isUserOwnEvent(event, connection("jira", { providerUserId: "viewer-abc" }))).toBe(false)
+	})
 })
 
 describe("shouldSuppressForSelf", () => {
