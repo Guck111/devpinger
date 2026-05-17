@@ -282,23 +282,24 @@ export const handleMute = async (ctx: Callback, eventId: string): Promise<void> 
 	await ctx.answerCallbackQuery()
 	const eventTypePrefix = event.type.split(".")[0] ?? event.type
 	const kb = new InlineKeyboard()
-	// `~` separates scopeValue from eventId because scopeValue itself can
-	// contain colons (e.g. Jira event types like "jira:issue_created") which
-	// would otherwise break the callback regex that parses this string back.
+	// eventId is intentionally NOT in the callback_data: it isn't read by
+	// the create handler (addMute only needs scopeType+scopeValue), and
+	// including a UUID would push the payload past Telegram's 64-byte
+	// callback_data ceiling for long event types like "jira:issue_updated".
 	kb.text(
 		ctx.t("mutes.scope.event_type", { value: eventTypePrefix }),
-		`mute:create:event_type:${eventTypePrefix}~${event.id}`,
+		`mute:create:event_type:${eventTypePrefix}`,
 	).row()
 	if (event.scope) {
 		const scopeLabel = event.source === "jira" ? "project" : "repo"
 		kb.text(
 			ctx.t(`mutes.scope.${scopeLabel}`, { value: event.scope }),
-			`mute:create:${scopeLabel}:${event.scope}~${event.id}`,
+			`mute:create:${scopeLabel}:${event.scope}`,
 		).row()
 	}
 	kb.text(
 		ctx.t("mutes.scope.source", { value: event.source }),
-		`mute:create:source:${event.source}~${event.id}`,
+		`mute:create:source:${event.source}`,
 	).row()
 	await ctx.reply(ctx.t("mutes.choosePrompt"), { reply_markup: kb })
 	// Keep addMute import alive (used by the create handler in bot/index.ts).
