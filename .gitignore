@@ -44,3 +44,6 @@ drizzle/meta/_journal.json.bak
 # Local data
 data/
 volumes/
+
+# Internal planning/spec docs (superpowers workflow)
+docs/superpowers/
