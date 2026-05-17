@@ -2,7 +2,7 @@
 
 ## Reporting
 
-Email `security@<your-domain>` with details. We'll acknowledge within
+Email `info@devpinger.com` with details. We'll acknowledge within
 72 hours and coordinate a fix before public disclosure.
 
 ## Threat model
