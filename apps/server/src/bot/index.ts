@@ -594,7 +594,7 @@ bot.callbackQuery(/^mute:rm:([0-9a-f-]+)$/, async (ctx) => {
 	}
 })
 
-bot.callbackQuery(/^mute:create:(source|repo|project|event_type):([^:]+):(.+)$/, async (ctx) => {
+bot.callbackQuery(/^mute:create:(source|repo|project|event_type):([^~]+)~(.+)$/, async (ctx) => {
 	const scopeType = ctx.match?.[1] as "source" | "repo" | "project" | "event_type" | undefined
 	const scopeValue = ctx.match?.[2]
 	if (!scopeType || !scopeValue) return

@@ -282,20 +282,23 @@ export const handleMute = async (ctx: Callback, eventId: string): Promise<void> 
 	await ctx.answerCallbackQuery()
 	const eventTypePrefix = event.type.split(".")[0] ?? event.type
 	const kb = new InlineKeyboard()
+	// `~` separates scopeValue from eventId because scopeValue itself can
+	// contain colons (e.g. Jira event types like "jira:issue_created") which
+	// would otherwise break the callback regex that parses this string back.
 	kb.text(
 		ctx.t("mutes.scope.event_type", { value: eventTypePrefix }),
-		`mute:create:event_type:${eventTypePrefix}:${event.id}`,
+		`mute:create:event_type:${eventTypePrefix}~${event.id}`,
 	).row()
 	if (event.scope) {
 		const scopeLabel = event.source === "jira" ? "project" : "repo"
 		kb.text(
 			ctx.t(`mutes.scope.${scopeLabel}`, { value: event.scope }),
-			`mute:create:${scopeLabel}:${event.scope}:${event.id}`,
+			`mute:create:${scopeLabel}:${event.scope}~${event.id}`,
 		).row()
 	}
 	kb.text(
 		ctx.t("mutes.scope.source", { value: event.source }),
-		`mute:create:source:${event.source}:${event.id}`,
+		`mute:create:source:${event.source}~${event.id}`,
 	).row()
 	await ctx.reply(ctx.t("mutes.choosePrompt"), { reply_markup: kb })
 	// Keep addMute import alive (used by the create handler in bot/index.ts).
