@@ -1,3 +1,4 @@
+import { type Locale, botMessages, createTranslator } from "@devpinger/i18n"
 import {
 	type GithubCredentials,
 	type GithubTokenResponse,
@@ -8,13 +9,15 @@ import {
 } from "@devpinger/sources-github"
 import type { FastifyInstance } from "fastify"
 import { z } from "zod"
+import { bot } from "../../bot/index.js"
+import { renderOnboardingStep2 } from "../../bot/onboarding.js"
 import { env } from "../../config.js"
 import { db } from "../../db.js"
 import { logger } from "../../logger.js"
 import { upsertConnection } from "../../services/connections.js"
 import { consumeOauthState, createOauthState } from "../../services/oauth-state.js"
 import { verifyTg } from "../../services/signed-tg.js"
-import { getUserByTelegramId } from "../../services/users.js"
+import { getUserById, getUserByTelegramId } from "../../services/users.js"
 
 const startQuerySchema = z.object({ sig: z.string().min(1) })
 const callbackQuerySchema = z.object({ code: z.string().min(1), state: z.string().min(1) })
@@ -81,6 +84,21 @@ export const githubOauthRoutes = async (app: FastifyInstance) => {
 		})
 
 		logger.info({ userId: state.userId, githubLogin: viewer.login }, "github oauth connected")
+
+		try {
+			const user = await getUserById(db, state.userId)
+			if (user) {
+				const t = createTranslator(botMessages[user.lang as Locale])
+				const step2 = renderOnboardingStep2({ t, provider: "github" })
+				await bot.api.sendMessage(user.telegramChatId, step2.text, {
+					parse_mode: "HTML",
+					reply_markup: step2.keyboard,
+				})
+			}
+		} catch (err) {
+			logger.warn({ err, userId: state.userId }, "failed to push step2 to telegram after github oauth")
+		}
+
 		return reply.redirect(`https://t.me/${env.TELEGRAM_BOT_USERNAME}?start=connected_github`)
 	})
 }
