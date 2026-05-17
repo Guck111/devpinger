@@ -13,7 +13,6 @@ import { listConnectedProviders } from "../services/connections.js"
 import { recentEvents, userStats } from "../services/history.js"
 import { deleteMuteById, listMutes } from "../services/mutes.js"
 import { clearPendingAction, getPendingAction } from "../services/pending-action.js"
-import { signTg } from "../services/signed-tg.js"
 import { getUserByTelegramId, setNotifySelfActions, upsertUser } from "../services/users.js"
 import {
 	handleDeleteCancel,
@@ -47,6 +46,7 @@ import {
 } from "./hub/settings.js"
 import { type I18nFlavor, createI18nMiddleware } from "./i18n.js"
 import { dbLocaleResolver } from "./locale-resolver.js"
+import { oauthStartUrl } from "./oauth-url.js"
 import { renderAdaptiveStart, renderOnboardingStep1, renderOnboardingStep2 } from "./onboarding.js"
 import { handleProjectAdd, handleProjectRemove, handleProjectsCommand } from "./projects.js"
 import { handleRepoAdd, handleRepoRemove, handleReposCommand } from "./repos.js"
@@ -74,10 +74,8 @@ bot.use(async (ctx, next) => {
 	await next()
 })
 
-const oauthUrlFor = (telegramId: number) => (provider: "github" | "jira") => {
-	const sig = signTg(telegramId, `oauth-${provider}-start`, env.ENCRYPTION_KEY)
-	return `${env.PUBLIC_BASE_URL}/oauth/${provider}/start?sig=${sig}`
-}
+const oauthUrlFor = (telegramId: number) => (provider: "github" | "jira") =>
+	oauthStartUrl(telegramId, provider)
 
 registerHub(bot, {
 	connections: async (ctx) => {

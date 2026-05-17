@@ -38,6 +38,7 @@ import {
 import { getUserByTelegramId, markOnboardingCompleted } from "../services/users.js"
 import { mainReplyKeyboard } from "./hub/keyboard.js"
 import type { I18nFlavor } from "./i18n.js"
+import { oauthStartUrl } from "./oauth-url.js"
 import { renderOnboardingStep3 } from "./onboarding.js"
 
 type BotContext = Context & I18nFlavor
@@ -147,6 +148,11 @@ export const handleProjectAdd = async (
 		const ensure = await ensureJiraWebhook(db, user.id)
 		if (ensure.status === "needs_reconnect") {
 			await ctx.answerCallbackQuery({ text: ctx.t("jiraProjects.needsReconnect") })
+			const reconnectKb = new InlineKeyboard().url(
+				ctx.t("jiraProjects.reconnectButton"),
+				oauthStartUrl(telegramId, "jira"),
+			)
+			await ctx.reply(ctx.t("jiraProjects.needsReconnect"), { reply_markup: reconnectKb })
 		} else {
 			await ctx.answerCallbackQuery({ text: ctx.t("jiraProjects.added", { key: projectKey }) })
 		}
