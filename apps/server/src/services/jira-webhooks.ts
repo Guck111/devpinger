@@ -56,10 +56,22 @@ export const ensureJiraWebhook = async (
 	const activeKeys = subs.filter((s) => s.isActive).map((s) => s.providerScopeId)
 	const existing = conn.credentials.jiraWebhook
 
+	logger.info(
+		{
+			userId,
+			activeKeyCount: activeKeys.length,
+			existingWebhookId: existing?.id ?? null,
+			existingJql: existing?.jql ?? null,
+			needsReconnect: existing?.needsReconnect ?? false,
+		},
+		"jira ensureWebhook: start",
+	)
+
 	// No active subscriptions: drop the webhook if any exists, nothing to register.
 	if (activeKeys.length === 0) {
 		if (existing) {
 			await removeJiraWebhook(db, userId)
+			logger.info({ userId }, "jira ensureWebhook: deleted (no active subscriptions)")
 			return { status: "deleted" }
 		}
 		return { status: "no_op" }
@@ -69,6 +81,10 @@ export const ensureJiraWebhook = async (
 
 	// Already registered with the right JQL and not flagged as broken? No-op.
 	if (existing && existing.jql === newJql && !existing.needsReconnect) {
+		logger.info(
+			{ userId, webhookId: existing.id, jql: newJql },
+			"jira ensureWebhook: unchanged (already registered with the right JQL)",
+		)
 		return { status: "unchanged" }
 	}
 
@@ -134,6 +150,10 @@ export const ensureJiraWebhook = async (
 		createdAt: existing?.createdAt ?? now,
 		refreshedAt: now,
 	})
+	logger.info(
+		{ userId, webhookId: newId, jql: newJql, callbackUrl: url },
+		`jira ensureWebhook: ${existing ? "recreated" : "created"}`,
+	)
 	return { status: existing ? "recreated" : "created" }
 }
 
