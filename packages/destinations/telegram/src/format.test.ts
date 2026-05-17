@@ -47,6 +47,7 @@ describe("formatEvent — github pull_request.opened", () => {
 			"act:view:evt-1",
 			"act:snz4h:evt-1",
 			"act:snz1d:evt-1",
+			"act:mute:evt-1",
 			"url:https://github.com/viewer/repo/pull/42",
 		])
 	})
@@ -92,6 +93,7 @@ describe("formatEvent — github issue_comment", () => {
 		expect(callbackTargets(result.keyboard.inline_keyboard as never)).toEqual([
 			"act:comment:evt-c",
 			"act:snz4h:evt-c",
+			"act:mute:evt-c",
 			"url:https://github.com/viewer/repo/pull/42",
 		])
 	})
@@ -136,6 +138,7 @@ describe("formatEvent — jira issue", () => {
 			"act:comment:evt-j",
 			"act:trans:evt-j",
 			"act:snz4h:evt-j",
+			"act:mute:evt-j",
 			"url:https://acme.atlassian.net/browse/PROJ-123",
 		])
 	})
@@ -173,6 +176,7 @@ describe("formatEvent — Russian locale", () => {
 			"act:view:evt-ru",
 			"act:snz4h:evt-ru",
 			"act:snz1d:evt-ru",
+			"act:mute:evt-ru",
 			"url:https://github.com/viewer/repo/pull/42",
 		])
 	})

@@ -30,18 +30,21 @@ const buildDefaultKeyboard = (
 		kb.row()
 		kb.text(t("actions.snooze4h"), `act:snz4h:${eventId}`)
 		kb.text(t("actions.snoozeDay"), `act:snz1d:${eventId}`)
+		kb.text(t("actions.mute"), `act:mute:${eventId}`)
 		kb.url(t("actions.open"), event.url)
 		return kb
 	}
 	if (event.source === "github" && event.type === "issue_comment") {
 		kb.text(t("actions.comment"), `act:comment:${eventId}`)
 		kb.text(t("actions.snooze4h"), `act:snz4h:${eventId}`)
+		kb.text(t("actions.mute"), `act:mute:${eventId}`)
 		kb.url(t("actions.open"), event.url)
 		return kb
 	}
 	if (event.source === "github" && event.type.startsWith("issues.")) {
 		kb.text(t("actions.comment"), `act:comment:${eventId}`)
 		kb.text(t("actions.snooze4h"), `act:snz4h:${eventId}`)
+		kb.text(t("actions.mute"), `act:mute:${eventId}`)
 		kb.url(t("actions.open"), event.url)
 		return kb
 	}
@@ -56,6 +59,7 @@ const buildDefaultKeyboard = (
 		kb.text(t("actions.transition"), `act:trans:${eventId}`)
 		kb.row()
 		kb.text(t("actions.snooze4h"), `act:snz4h:${eventId}`)
+		kb.text(t("actions.mute"), `act:mute:${eventId}`)
 		kb.url(t("actions.open"), event.url)
 		return kb
 	}
@@ -65,10 +69,12 @@ const buildDefaultKeyboard = (
 	) {
 		kb.text(t("actions.reply"), `act:reply:${eventId}`)
 		kb.text(t("actions.snooze4h"), `act:snz4h:${eventId}`)
+		kb.text(t("actions.mute"), `act:mute:${eventId}`)
 		kb.url(t("actions.open"), event.url)
 		return kb
 	}
 	kb.text(t("actions.snooze4h"), `act:snz4h:${eventId}`)
+	kb.text(t("actions.mute"), `act:mute:${eventId}`)
 	kb.url(t("actions.open"), event.url)
 	return kb
 }
