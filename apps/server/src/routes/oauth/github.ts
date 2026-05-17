@@ -9,6 +9,7 @@ import {
 } from "@devpinger/sources-github"
 import type { FastifyInstance } from "fastify"
 import { z } from "zod"
+import { mainReplyKeyboard } from "../../bot/hub/keyboard.js"
 import { bot } from "../../bot/index.js"
 import { renderOnboardingStep2 } from "../../bot/onboarding.js"
 import { env } from "../../config.js"
@@ -89,11 +90,25 @@ export const githubOauthRoutes = async (app: FastifyInstance) => {
 			const user = await getUserById(db, state.userId)
 			if (user) {
 				const t = createTranslator(botMessages[user.lang as Locale])
-				const step2 = renderOnboardingStep2({ t, provider: "github" })
-				await bot.api.sendMessage(user.telegramChatId, step2.text, {
-					parse_mode: "HTML",
-					reply_markup: step2.keyboard,
-				})
+				if (user.onboardingCompletedAt === null) {
+					const step2 = renderOnboardingStep2({ t, provider: "github" })
+					await bot.api.sendMessage(user.telegramChatId, step2.text, {
+						parse_mode: "HTML",
+						reply_markup: step2.keyboard,
+					})
+				} else {
+					await bot.api.sendMessage(
+						user.telegramChatId,
+						t("hubV2.connections.githubConnected", { login: viewer.login }),
+						{
+							reply_markup: {
+								keyboard: mainReplyKeyboard(t).build(),
+								resize_keyboard: true,
+								is_persistent: true,
+							},
+						},
+					)
+				}
 			}
 		} catch (err) {
 			logger.warn(
