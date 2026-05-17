@@ -14,7 +14,6 @@
 			".turbo",
 			".astro",
 			"**/.astro/**",
-			"apps/landing",
 			"drizzle",
 			"*.tsbuildinfo",
 			"pnpm-lock.yaml"
