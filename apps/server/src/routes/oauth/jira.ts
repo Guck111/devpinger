@@ -124,7 +124,10 @@ export const jiraOauthRoutes = async (app: FastifyInstance) => {
 				})
 			}
 		} catch (err) {
-			logger.warn({ err, userId: state.userId }, "failed to push step2 to telegram after jira oauth")
+			logger.warn(
+				{ err, userId: state.userId },
+				"failed to push step2 to telegram after jira oauth",
+			)
 		}
 
 		return reply.redirect(`https://t.me/${env.TELEGRAM_BOT_USERNAME}?start=connected_jira`)

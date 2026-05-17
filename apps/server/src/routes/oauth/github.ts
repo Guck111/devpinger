@@ -96,7 +96,10 @@ export const githubOauthRoutes = async (app: FastifyInstance) => {
 				})
 			}
 		} catch (err) {
-			logger.warn({ err, userId: state.userId }, "failed to push step2 to telegram after github oauth")
+			logger.warn(
+				{ err, userId: state.userId },
+				"failed to push step2 to telegram after github oauth",
+			)
 		}
 
 		return reply.redirect(`https://t.me/${env.TELEGRAM_BOT_USERNAME}?start=connected_github`)
