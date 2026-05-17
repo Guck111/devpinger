@@ -34,7 +34,7 @@ source actions.
 | Process | Purpose | File |
 | --- | --- | --- |
 | `apps/server` | Fastify HTTP + grammy Telegram bot | [src/index.ts](../apps/server/src/index.ts) |
-| `apps/worker` | BullMQ queues: notifications, snooze, cleanup, oauth-state-cleanup | [src/index.ts](../apps/worker/src/index.ts) |
+| `apps/worker` | BullMQ queues: notifications, snooze, cleanup, oauth-state-cleanup, jira-webhook-refresh | [src/index.ts](../apps/worker/src/index.ts) |
 
 The server handles inbound webhooks, OAuth callbacks, and the Telegram
 bot (long-polling in dev, webhook in prod). The worker drains the
@@ -124,8 +124,16 @@ one matches. This is O(N) per request; at 10k users it's still
 sub-millisecond, and migrating to GitHub App tokens (per-installation
 auth, no iteration) is the V2 plan.
 
-Jira webhooks include the subscription id in the path
-(`/webhooks/jira/:subscriptionId`), so routing is O(1).
+Jira webhooks include an identifier in the path
+(`/webhooks/jira/:id`), so routing is O(1). The `:id` is the connection
+id in the current Dynamic-Webhook model, with a legacy fallback to
+subscription id for older subscriptions; auth is the per-tenant secret
+delivered alongside the request (constant-time compared to
+`connections.encrypted_credentials.jiraWebhook.secret`).
+
+A separate worker (`jira-webhook-refresh`) renews Atlassian Dynamic
+Webhooks before their 30-day TTL expires, so a connected user never
+loses delivery without explicit action.
 
 ## OAuth and credential storage
 
@@ -156,7 +164,9 @@ Everything below is V1 code that V2 / V3 extend without forking:
 - BullMQ queues are addressable by name — V2 adds `digest` /
   `email-digest-failure` etc. without touching the V1 worker
 - Migrations are additive: V2 adds `0001_billing.sql` on top of V1's
-  `0000_initial.sql`. The public schema never carries Stripe columns
+  existing migrations. V1 already ships `preorders` and
+  `landing_subscribers` (preorder smoke-test); V2's recurring-billing
+  tables (`subscriptions`, `invoices`, etc.) live in the private repo
 - Env-schema can be merged via `envSchema.merge(z.object({...}))`
   in the private process entry point
 

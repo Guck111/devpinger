@@ -5,18 +5,20 @@ GitHub pull requests and Jira issues, delivered to one Telegram inbox.
 [**Open the bot →**](https://t.me/dev_pinger_bot) `@dev_pinger_bot`
 
 Tap `/start`, connect GitHub, optionally connect Jira. Events arrive in your
-personal chat with inline buttons to approve, comment, merge, transition,
+personal chat with inline buttons to approve, comment, view diff, transition,
 snooze, or mute.
 
 ## What V1 ships
 
 | Surface | What you get |
 | --- | --- |
-| Sources | **GitHub** (PRs, reviews, comments, issues, releases, CI failures) and **Jira Cloud** (issues, comments, status changes, worklogs, mentions). |
+| Sources | **GitHub** (PRs, reviews, comments, issues, releases, CI failures, direct pushes to default branch) and **Jira Cloud** (issues, comments, status changes, worklogs, mentions). |
 | Delivery | A single Telegram bot — `@dev_pinger_bot`. |
-| Actions | GitHub: approve, request changes, comment, reply to review comment, merge, close, reopen, assign. Jira: add comment, transition, assign. |
-| Filtering | Mute by source, repo, project, or event type. Self-suppression (your own actions don't echo back). |
+| Inline actions | GitHub: approve, comment, view diff, snooze, mute. Jira: comment, transition, reply to comment, snooze, mute. |
+| Provider write capability | The adapters can additionally request changes, merge, close, reopen, assign, and reply to review/issue comments — wired into callback handlers but not surfaced as keyboard buttons in V1. Extensions can attach custom button rows via the per-event `actions` slot. |
+| Filtering | Mute by source, repo, project, or event type. Self-suppression (your own actions don't echo back, toggle with `/notify_self`). |
 | Auth | Telegram `/start` + OAuth flows opened from the bot for GitHub and Jira. Tokens are stored AES-256-GCM encrypted. |
+| Privacy | `/unsubscribe`, `/export`, `/forget_event` for GDPR rights. Plan-driven event retention. |
 
 ## Quick start
 
@@ -45,7 +47,7 @@ Detailed setup (Cloudflare Tunnel, GitHub/Jira OAuth apps, generating
 ```
 apps/
   server/   Fastify HTTP server + grammy Telegram bot
-  worker/   BullMQ workers (notifications, snooze, cleanup, oauth-state sweep)
+  worker/   BullMQ workers (notifications, snooze, cleanup, oauth-state sweep, jira-webhook-refresh)
 packages/
   core/     SourceAdapter, DestinationAdapter, NormalizedEvent, plans, PlanGate
   crypto/   AES-256-GCM cipher
@@ -97,8 +99,12 @@ TL;DR — `/unsubscribe` removes everything, `/export` gives you a JSON dump,
 ## Roadmap
 
 V1.5 brings Microsoft Teams as a source. V2 layers on AI digests, email
-delivery, web inbox, and Stripe billing — all in a separate private repo
-that consumes `@devpinger/*` packages from here. The full plan is in
+delivery, web inbox, and recurring Stripe billing (subscriptions,
+plan-gate enforcement, `/billing` UI) in a separate private repo that
+consumes `@devpinger/*` packages from here. The public repo additionally
+contains the preorder smoke-test surface (`/v1/stripe/webhook` for
+`checkout.session.completed`, the `preorders` table) used for the
+$9 lifetime preorder on `preorder.devpinger.com`. The full plan is in
 [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## License
