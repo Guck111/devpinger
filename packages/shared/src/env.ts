@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-const serverEnvSchema = z.object({
+const serverEnvSchemaBase = z.object({
 	NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 	PORT: z.coerce.number().default(3001),
 	LOG_LEVEL: z.enum(["trace", "debug", "info", "warn", "error", "fatal"]).default("info"),
@@ -41,6 +41,21 @@ const serverEnvSchema = z.object({
 	// Lifetime preorder total seats. Controls the /v1/landing/seats endpoint and the badge.
 	// Stripe enforces the actual cap on the Payment Link side.
 	PREORDER_TOTAL_SEATS: z.coerce.number().int().positive().default(30),
+})
+
+// Production safety: STRIPE_WEBHOOK_SECRET is *optional* in the base schema
+// so dev/test envs without Stripe can boot (the /v1/stripe/webhook handler
+// returns 503 in that case). But shipping prod without it is a silent
+// disaster — every Stripe checkout would 503, money taken, no preorder row.
+// Fail the env load instead of letting prod limp into that state.
+const serverEnvSchema = serverEnvSchemaBase.superRefine((data, ctx) => {
+	if (data.NODE_ENV === "production" && !data.STRIPE_WEBHOOK_SECRET) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			path: ["STRIPE_WEBHOOK_SECRET"],
+			message: "STRIPE_WEBHOOK_SECRET is required when NODE_ENV=production",
+		})
+	}
 })
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>
