@@ -19,6 +19,24 @@ api.devpinger.com {
 		-Server
 	}
 
+	# IMPORTANT: do NOT enable Caddy access logs (`log { … }`) without query
+	# redaction. Jira Dynamic Webhooks deliver the per-tenant secret as
+	# `?secret=...` in the request URL — Atlassian's webhook registration
+	# API does not let us set custom request headers, so the secret has to
+	# live in the URL. Caddy's default access-log format includes the full
+	# request URI and would persist the secret to disk verbatim.
+	#
+	# If access logging is needed for debugging, use the form below
+	# (commented). It writes to stdout and strips the query before serializing:
+	#
+	# log {
+	# 	output stdout
+	# 	format transform `{request>uri_path} {request>method} {status}` {
+	# 		# explicit fields only — never the raw request.uri which carries
+	# 		# the Jira secret.
+	# 	}
+	# }
+
 	# Surface only the routes that should be public.
 	# Webhooks, OAuth callbacks, Telegram, landing subscribe/seats, Stripe webhook, health.
 	@public path /health /ready /v1/landing/* /v1/stripe/* /webhooks/* /oauth/* /telegram/*
