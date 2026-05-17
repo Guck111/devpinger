@@ -35,7 +35,7 @@ single Hetzner Cloud VPS. The lifecycle is intentionally boring: SSH in,
                       └───────────────────┘
 ```
 
-- Landing (`devpinger.com`) lives on Cloudflare Pages, not on this VPS.
+- The marketing site (`preorder.devpinger.com`) is built from a separate private repo (`Guck111/devpinger_preorder`) and hosted on Cloudflare Workers — it never touches this VPS. It calls back into `api.devpinger.com` for the preorder seat counter and email subscriptions; that allow-list lives in `LANDING_ALLOWED_ORIGINS`.
 - Backend API is exposed at `api.devpinger.com` with Let's Encrypt TLS via Caddy.
 - Postgres is managed by Supabase. The VPS connects via the transaction pooler.
 - Redis is local, ephemeral. BullMQ queues only.
@@ -175,5 +175,5 @@ every user will need to re-authorise GitHub/Jira.
 | Hetzner CX23 (2 vCPU / 4 GB / 40 GB NVMe) | $6.14 |
 | Hetzner IPv4 | $0.74 |
 | Supabase Free | $0 |
-| Cloudflare Pages (landing) | $0 |
+| Cloudflare Workers (preorder.devpinger.com) | $0 |
 | **Total** | **~$6.88/mo** |
