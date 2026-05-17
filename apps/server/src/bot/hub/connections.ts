@@ -7,7 +7,6 @@ export interface RenderConnectionsInput {
 	db: typeof Db
 	userId: string
 	t: Translator
-	oauthUrl: (provider: "github" | "jira") => string
 }
 
 type InlineButton = { text: string; callback_data: string } | { text: string; url: string }
@@ -20,7 +19,7 @@ export interface RenderedConnections {
 export const renderConnectionsSection = async (
 	input: RenderConnectionsInput,
 ): Promise<RenderedConnections> => {
-	const { db, userId, t, oauthUrl } = input
+	const { db, userId, t } = input
 	const connected = await listConnectedProviders(db, userId)
 	const kb = new InlineKeyboard()
 
@@ -34,7 +33,9 @@ export const renderConnectionsSection = async (
 			.text(t("hubV2.connections.disconnect"), "hub:conn:disconnect:github")
 			.row()
 	} else {
-		kb.url(t("hubV2.connections.githubConnect"), oauthUrl("github")).row()
+		// Lazy OAuth: the URL is only minted when the user actually taps the
+		// button, so the signed link never appears in chat history until then.
+		kb.text(t("hubV2.connections.githubConnect"), "hub:conn:connect:github").row()
 	}
 
 	const ji = connected.get("jira")
@@ -47,7 +48,7 @@ export const renderConnectionsSection = async (
 			.text(t("hubV2.connections.disconnect"), "hub:conn:disconnect:jira")
 			.row()
 	} else {
-		kb.url(t("hubV2.connections.jiraConnect"), oauthUrl("jira")).row()
+		kb.text(t("hubV2.connections.jiraConnect"), "hub:conn:connect:jira").row()
 	}
 
 	kb.text(t("hubV2.close"), "hub:close")

@@ -74,9 +74,6 @@ bot.use(async (ctx, next) => {
 	await next()
 })
 
-const oauthUrlFor = (telegramId: number) => (provider: "github" | "jira") =>
-	oauthStartUrl(telegramId, provider)
-
 registerHub(bot, {
 	connections: async (ctx) => {
 		const tgId = ctx.from?.id
@@ -87,7 +84,6 @@ registerHub(bot, {
 			db,
 			userId: user.id,
 			t: ctx.t,
-			oauthUrl: oauthUrlFor(tgId),
 		})
 		await ctx.reply(rendered.text, {
 			parse_mode: "HTML",
@@ -142,6 +138,31 @@ bot.callbackQuery(/^hub:conn:disconnect:(github|jira)$/, async (ctx) => {
 			? "hubV2.connections.disconnectedGithub"
 			: "hubV2.connections.disconnectedJira"
 	await ctx.reply(ctx.t(msgKey))
+})
+
+// Lazy OAuth: only mint the signed start URL once the user has actually
+// requested to connect. Replaces the "Connect" callback button with a single
+// URL button carrying a fresh 5-minute-TTL signed link.
+bot.callbackQuery(/^hub:conn:connect:(github|jira)$/, async (ctx) => {
+	const provider = ctx.match?.[1] as "github" | "jira"
+	const tgId = ctx.from?.id
+	if (!tgId) {
+		await ctx.answerCallbackQuery()
+		return
+	}
+	const url = oauthStartUrl(tgId, provider)
+	const label =
+		provider === "github"
+			? ctx.t("hubV2.connections.githubOpenAuth")
+			: ctx.t("hubV2.connections.jiraOpenAuth")
+	const kb = new InlineKeyboard().url(label, url)
+	try {
+		await ctx.editMessageReplyMarkup({ reply_markup: kb })
+	} catch {
+		// Message may be too old to edit; fall back to a fresh reply.
+		await ctx.reply(label, { reply_markup: kb })
+	}
+	await ctx.answerCallbackQuery({ text: ctx.t("hubV2.connections.linkReady") })
 })
 
 bot.callbackQuery("hub:close", async (ctx) => {
@@ -312,8 +333,6 @@ bot.command("start", async (ctx) => {
 		const s1 = renderOnboardingStep1({
 			t: ctx.t,
 			username: ctx.from?.username ?? null,
-			githubOauthUrl: oauthUrlFor(tgId)("github"),
-			jiraOauthUrl: oauthUrlFor(tgId)("jira"),
 		})
 		await ctx.reply(s1.welcome, { parse_mode: "HTML" })
 		await ctx.reply(s1.step.text, {

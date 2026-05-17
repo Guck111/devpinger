@@ -20,7 +20,10 @@
 			"openProjects": "📋 Projects",
 			"disconnect": "🔌 Disconnect",
 			"disconnectedGithub": "🔌 GitHub disconnected. Webhooks on your repos stay — remove them in Settings → Webhooks on each repo.",
-			"disconnectedJira": "🔌 Jira disconnected."
+			"disconnectedJira": "🔌 Jira disconnected.",
+			"githubOpenAuth": "🔗 Open GitHub auth (5 min)",
+			"jiraOpenAuth": "🔗 Open Jira auth (5 min)",
+			"linkReady": "Link ready — tap it to continue"
 		},
 		"events": {
 			"title": "🔔 <b>Events</b>",

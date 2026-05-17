@@ -9,8 +9,6 @@ type InlineButton = { text: string; callback_data: string } | { text: string; ur
 export interface OnboardingStep1Input {
 	t: Translator
 	username: string | null
-	githubOauthUrl: string
-	jiraOauthUrl: string
 }
 
 export interface OnboardingStep1Output {
@@ -19,13 +17,15 @@ export interface OnboardingStep1Output {
 }
 
 export const renderOnboardingStep1 = (input: OnboardingStep1Input): OnboardingStep1Output => {
-	const { t, username, githubOauthUrl, jiraOauthUrl } = input
+	const { t, username } = input
 	const welcome = username ? t("onboarding.welcome", { username }) : t("onboarding.welcomeFallback")
 	const stepText = `${t("onboarding.step1Title")}\n\n${t("onboarding.step1Body")}`
+	// Lazy OAuth: callback buttons here mint the signed start URL only when
+	// the user actually taps, so step-1 messages don't ship a live link.
 	const kb = new InlineKeyboard()
-		.url(t("hubV2.connections.githubConnect"), githubOauthUrl)
+		.text(t("hubV2.connections.githubConnect"), "hub:conn:connect:github")
 		.row()
-		.url(t("hubV2.connections.jiraConnect"), jiraOauthUrl)
+		.text(t("hubV2.connections.jiraConnect"), "hub:conn:connect:jira")
 	return {
 		welcome,
 		step: {

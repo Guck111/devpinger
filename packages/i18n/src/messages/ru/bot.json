@@ -20,7 +20,10 @@
 			"openProjects": "📋 Проекты",
 			"disconnect": "🔌 Отключить",
 			"disconnectedGithub": "🔌 GitHub отключён. Webhooks в репозиториях остаются — удали их в Settings → Webhooks каждого репо.",
-			"disconnectedJira": "🔌 Jira отключена."
+			"disconnectedJira": "🔌 Jira отключена.",
+			"githubOpenAuth": "🔗 Открыть авторизацию GitHub (5 мин)",
+			"jiraOpenAuth": "🔗 Открыть авторизацию Jira (5 мин)",
+			"linkReady": "Ссылка готова — открывай"
 		},
 		"events": {
 			"title": "🔔 <b>События</b>",

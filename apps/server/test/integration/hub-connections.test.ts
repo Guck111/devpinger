@@ -35,13 +35,17 @@ describe.skipIf(skip)("hub: connections section", () => {
 			db,
 			userId: user.id,
 			t,
-			oauthUrl: (p) => `https://example.com/oauth/${p}/start`,
 		})
 		expect(rendered.text).toContain("📡 Connections")
 		const buttons = rendered.keyboard.inline_keyboard.flat()
 		expect(buttons.some((b) => "text" in b && b.text === "✅ GitHub: @octocat")).toBe(true)
 		expect(buttons.some((b) => "text" in b && b.text === "📁 Repositories")).toBe(true)
 		expect(buttons.some((b) => "text" in b && b.text === "🔌 Disconnect")).toBe(true)
-		expect(buttons.some((b) => "url" in b)).toBe(true)
+		// Jira is not yet connected → lazy callback button, not a baked URL.
+		expect(
+			buttons.some((b) => "callback_data" in b && b.callback_data === "hub:conn:connect:jira"),
+		).toBe(true)
+		// No live OAuth URLs should appear in the rendered keyboard.
+		expect(buttons.every((b) => !("url" in b))).toBe(true)
 	})
 })

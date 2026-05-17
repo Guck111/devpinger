@@ -6,7 +6,7 @@ import {
 } from "../../src/bot/onboarding.js"
 
 describe("onboarding renderers", () => {
-	it("step 1 has welcome + 2 OAuth url buttons", () => {
+	it("step 1 has welcome + 2 lazy-connect callback buttons (no live URL)", () => {
 		const t = (k: string, p?: Record<string, string | number>) => {
 			const map: Record<string, string> = {
 				"onboarding.welcome": `Hi ${p?.username}!`,
@@ -17,17 +17,18 @@ describe("onboarding renderers", () => {
 			}
 			return map[k] ?? k
 		}
-		const r = renderOnboardingStep1({
-			t,
-			username: "octo",
-			githubOauthUrl: "https://x/gh",
-			jiraOauthUrl: "https://x/ji",
-		})
+		const r = renderOnboardingStep1({ t, username: "octo" })
 		expect(r.welcome).toContain("Hi octo")
 		expect(r.step.text).toContain("Step 1 of 3")
 		const buttons = r.step.keyboard.inline_keyboard.flat()
-		expect(buttons.some((b) => "url" in b && b.url === "https://x/gh")).toBe(true)
-		expect(buttons.some((b) => "url" in b && b.url === "https://x/ji")).toBe(true)
+		expect(
+			buttons.some((b) => "callback_data" in b && b.callback_data === "hub:conn:connect:github"),
+		).toBe(true)
+		expect(
+			buttons.some((b) => "callback_data" in b && b.callback_data === "hub:conn:connect:jira"),
+		).toBe(true)
+		// No live URL should ever be embedded at render time.
+		expect(buttons.every((b) => !("url" in b))).toBe(true)
 	})
 
 	it("step 2 includes provider name and CTA to repos/projects", () => {
