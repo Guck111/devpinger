@@ -206,6 +206,7 @@
 		"alreadyTracked": "Project {key} is already tracked.",
 		"added": "✅ Now watching project {key}.",
 		"removed": "🗑 Stopped watching project {key}.",
-		"loading": "Loading your Jira projects…"
+		"loading": "Loading your Jira projects…",
+		"needsReconnect": "⚠️ Reconnect Jira to enable webhooks (a new permission is required)."
 	}
 }

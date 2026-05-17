@@ -75,6 +75,37 @@ export const getConnection = async (
 	}
 }
 
+export const findConnectionById = async (
+	db: typeof Db,
+	id: string,
+): Promise<ResolvedConnection | null> => {
+	const [row] = await db.select().from(connections).where(eq(connections.id, id)).limit(1)
+	if (!row) return null
+	return {
+		id: row.id,
+		userId: row.userId,
+		provider: row.provider as OauthProvider,
+		providerUserId: row.providerUserId,
+		providerUsername: row.providerUsername,
+		credentials: decryptCredentials(row.encryptedCredentials),
+	}
+}
+
+export const listConnectionsByProvider = async (
+	db: typeof Db,
+	provider: OauthProvider,
+): Promise<ResolvedConnection[]> => {
+	const rows = await db.select().from(connections).where(eq(connections.provider, provider))
+	return rows.map((row) => ({
+		id: row.id,
+		userId: row.userId,
+		provider: row.provider as OauthProvider,
+		providerUserId: row.providerUserId,
+		providerUsername: row.providerUsername,
+		credentials: decryptCredentials(row.encryptedCredentials),
+	}))
+}
+
 export const listConnectedProviders = async (
 	db: typeof Db,
 	userId: string,
@@ -136,6 +167,18 @@ export const disconnectProvider = async (
 					}
 				}
 			}
+		}
+	}
+	if (connection && provider === "jira" && connection.credentials.jiraWebhook) {
+		// Dynamic import avoids a cycle: jira-webhooks imports from this file.
+		const { removeJiraWebhook } = await import("./jira-webhooks.js")
+		try {
+			await removeJiraWebhook(db, userId)
+		} catch (err) {
+			logger.warn(
+				{ err, userId },
+				"jira removeJiraWebhook failed during disconnect; deactivating anyway",
+			)
 		}
 	}
 	await deactivateAllForUserProvider(db, userId, provider)

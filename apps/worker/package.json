@@ -18,6 +18,7 @@
 		"@devpinger/destinations-telegram": "workspace:*",
 		"@devpinger/i18n": "workspace:*",
 		"@devpinger/shared": "workspace:*",
+		"@devpinger/sources-jira": "workspace:*",
 		"@sentry/node": "^9.5.0",
 		"bullmq": "^5.34.5",
 		"drizzle-orm": "^0.38.3",

@@ -22,6 +22,7 @@
 	"devDependencies": {
 		"@devpinger/tsconfig": "workspace:*",
 		"@types/node": "^22.10.5",
+		"nock": "^14.0.15",
 		"typescript": "^5.7.2",
 		"vitest": "^2.1.8"
 	}

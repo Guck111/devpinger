@@ -166,3 +166,31 @@ export const mockJiraAddComment = () =>
 	nock(JIRA_API)
 		.post(/\/ex\/jira\/[^/]+\/rest\/api\/3\/issue\/[^/]+\/comment/)
 		.reply(201, { id: "10001", body: "test" })
+
+export const mockJiraCreateWebhook = (createdWebhookId = 12345) =>
+	nock(JIRA_API)
+		.post(/\/ex\/jira\/[^/]+\/rest\/api\/3\/webhook$/)
+		.reply(200, {
+			webhookRegistrationResult: [{ createdWebhookId }],
+		})
+
+export const mockJiraCreateWebhookForbidden = () =>
+	nock(JIRA_API)
+		.post(/\/ex\/jira\/[^/]+\/rest\/api\/3\/webhook$/)
+		.reply(403, { errorMessages: ["missing scope manage:jira-webhook"] })
+
+export const mockJiraDeleteWebhook = () =>
+	nock(JIRA_API)
+		.delete(/\/ex\/jira\/[^/]+\/rest\/api\/3\/webhook$/)
+		.reply(202)
+
+export const mockJiraRefreshWebhook = (
+	opts: { failedIds?: number[]; expirationDate?: string } = {},
+) =>
+	nock(JIRA_API)
+		.put(/\/ex\/jira\/[^/]+\/rest\/api\/3\/webhook\/refresh$/)
+		.reply(200, {
+			expirationDate:
+				opts.expirationDate ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+			failedWebhooks: (opts.failedIds ?? []).map((id) => ({ id, errors: ["expired"] })),
+		})

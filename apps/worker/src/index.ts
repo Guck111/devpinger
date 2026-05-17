@@ -2,6 +2,7 @@ import { Redis } from "ioredis"
 import { env } from "./config.js"
 import { logger } from "./logger.js"
 import { startCleanupWorker } from "./queues/cleanup.js"
+import { startJiraWebhookRefreshWorker } from "./queues/jira-webhook-refresh.js"
 import { startNotificationsWorker } from "./queues/notifications.js"
 import { startOauthStateCleanupWorker } from "./queues/oauth-state-cleanup.js"
 import { startSnoozeWorker } from "./queues/snooze.js"
@@ -27,11 +28,13 @@ const main = async () => {
 
 	const cleanup = await startCleanupWorker(connection)
 	const oauthCleanup = await startOauthStateCleanupWorker(connection)
+	const jiraRefresh = await startJiraWebhookRefreshWorker(connection)
 	const workers = [
 		startNotificationsWorker(connection),
 		startSnoozeWorker(connection),
 		cleanup.worker,
 		oauthCleanup.worker,
+		jiraRefresh.worker,
 	]
 
 	logger.info({ count: workers.length }, "workers started")
@@ -50,6 +53,7 @@ const main = async () => {
 			await Promise.all(workers.map((w) => w.close()))
 			await cleanup.scheduler.close()
 			await oauthCleanup.scheduler.close()
+			await jiraRefresh.scheduler.close()
 			await connection.quit()
 			clearTimeout(force)
 			process.exit(0)

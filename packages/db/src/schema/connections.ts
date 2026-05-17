@@ -7,6 +7,22 @@ export const providerEnum = pgEnum("provider", ["github", "jira"])
 // @devpinger/crypto). One row per (user, provider). GitHub access tokens
 // don't expire — refreshToken/expiresAt absent. Jira (Atlassian 3LO)
 // access tokens live ~1h with refreshToken + jiraCloudId attached.
+//
+// `jiraWebhook` carries lifecycle metadata for the single dynamic webhook
+// we register per (user, cloudId). Atlassian Dynamic Webhooks have a hard
+// 30-day TTL; the refresh worker bumps `refreshedAt` via PUT /webhook/refresh
+// before it expires. `needsReconnect` is set when registration fails with 403
+// (scope missing) so the UI can prompt the user to reconnect with the new
+// scope without the worker retrying forever.
+export interface JiraWebhookMeta {
+	id: number
+	secret: string
+	jql: string
+	createdAt: string
+	refreshedAt: string
+	needsReconnect?: boolean
+}
+
 export interface ConnectionCredentialsPayload {
 	accessToken: string
 	refreshToken?: string
@@ -14,6 +30,7 @@ export interface ConnectionCredentialsPayload {
 	scopes?: string[]
 	jiraCloudId?: string
 	installationId?: string
+	jiraWebhook?: JiraWebhookMeta
 }
 
 export const connections = pgTable(

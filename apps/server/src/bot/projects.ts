@@ -2,10 +2,9 @@ import { createJiraClient } from "@devpinger/sources-jira"
 import type { CallbackQueryContext, CommandContext, Context } from "grammy"
 import { InlineKeyboard } from "grammy"
 import type { InlineKeyboardButton, InlineKeyboardMarkup } from "grammy/types"
-import { env } from "../config.js"
 import { db } from "../db.js"
 import { logger } from "../logger.js"
-import { sourceRegistry } from "../registries.js"
+import { ensureJiraWebhook } from "../services/jira-webhooks.js"
 
 const replaceButton = (
 	existing: InlineKeyboardMarkup | undefined,
@@ -33,6 +32,9 @@ import {
 	findSubscriptionById,
 	listSubscriptions,
 } from "../services/subscriptions.js"
+
+// We no longer call adapter.subscriptions.create for Jira — webhook lifecycle
+// runs through services/jira-webhooks.ts (one webhook per (user, cloudId)).
 import { getUserByTelegramId, markOnboardingCompleted } from "../services/users.js"
 import { mainReplyKeyboard } from "./hub/keyboard.js"
 import type { I18nFlavor } from "./i18n.js"
@@ -136,22 +138,18 @@ export const handleProjectAdd = async (
 		return
 	}
 	try {
-		const adapter = sourceRegistry.require("jira")
-		const result = await adapter.subscriptions.create(
-			{ type: "oauth", ...connection.credentials },
-			{
-				providerScopeId: projectKey,
-				callbackUrl: `${env.PUBLIC_BASE_URL}/webhooks/jira`,
-			},
-		)
 		const sub = await createSubscription(db, {
 			userId: user.id,
 			provider: "jira",
 			providerScopeId: projectKey,
 			displayName: projectKey,
-			webhookSecret: result.webhookSecret ?? null,
 		})
-		await ctx.answerCallbackQuery({ text: ctx.t("jiraProjects.added", { key: projectKey }) })
+		const ensure = await ensureJiraWebhook(db, user.id)
+		if (ensure.status === "needs_reconnect") {
+			await ctx.answerCallbackQuery({ text: ctx.t("jiraProjects.needsReconnect") })
+		} else {
+			await ctx.answerCallbackQuery({ text: ctx.t("jiraProjects.added", { key: projectKey }) })
+		}
 		const oldBtn = ctx.callbackQuery.message?.reply_markup?.inline_keyboard
 			.flat()
 			.find((b) => "callback_data" in b && b.callback_data === `proj:add:${projectKey}`)
@@ -201,6 +199,14 @@ export const handleProjectRemove = async (
 		return
 	}
 	await deactivateSubscription(db, sub.id)
+	try {
+		await ensureJiraWebhook(db, user.id)
+	} catch (err) {
+		logger.warn(
+			{ err, userId: user.id, subId: sub.id },
+			"jira project remove: ensureJiraWebhook failed; subscription deactivated anyway",
+		)
+	}
 	await ctx.answerCallbackQuery({
 		text: ctx.t("jiraProjects.removed", { key: sub.providerScopeId }),
 	})

@@ -71,9 +71,8 @@ export const addJiraConnection = async (
 				JSON.stringify({
 					accessToken: opts.accessToken ?? "jira_test_token",
 					refreshToken: "refresh_token",
-					cloudId: opts.cloudId ?? "test-cloud-id",
-					siteUrl: opts.siteUrl ?? "https://test.atlassian.net",
-					scopes: ["read:jira-work", "write:jira-work"],
+					jiraCloudId: opts.cloudId ?? "test-cloud-id",
+					scopes: ["read:jira-work", "write:jira-work", "manage:jira-webhook"],
 				}),
 			),
 		})
