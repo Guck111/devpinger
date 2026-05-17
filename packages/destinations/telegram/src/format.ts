@@ -101,13 +101,14 @@ export interface FormatEventInput {
 export const formatEvent = (input: FormatEventInput): FormattedNotification => {
 	const t = translatorFor(input.lang)
 	const icon = PRIORITY_ICON[input.event.priority]
+	const sourceTag = `[${input.event.source}]`
 	const lines: string[] = []
 	const actionLabel = getEventActionLabel(input.event.type, input.event.metadata, t)
 	if (actionLabel) {
-		lines.push(`${icon} ${actionLabel}`)
+		lines.push(`${icon} ${sourceTag} ${actionLabel}`)
 		lines.push(`<b>${escapeHtml(input.event.title)}</b>`)
 	} else {
-		lines.push(`${icon} <b>${escapeHtml(input.event.title)}</b>`)
+		lines.push(`${icon} ${sourceTag} <b>${escapeHtml(input.event.title)}</b>`)
 	}
 	if (input.event.actor?.username) {
 		lines.push(`└─ @${escapeHtml(input.event.actor.username)}`)

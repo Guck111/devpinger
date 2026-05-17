@@ -36,7 +36,7 @@ describe("formatEvent — github pull_request.opened", () => {
 			eventId: "evt-1",
 		})
 		expect(result.text).toMatchInlineSnapshot(`
-			"🟡 🟢 PR opened
+			"🟡 [github] 🟢 PR opened
 			<b>viewer/repo #42: Add feature</b>
 			└─ @octocat
 			└─ Short body"
