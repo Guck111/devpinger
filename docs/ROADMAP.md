@@ -9,7 +9,7 @@ private repo; this public repo stays MIT.
 
 - GitHub OAuth source (PRs, reviews, comments, issues, releases, CI)
 - Jira Cloud OAuth source (issues, comments, transitions, worklogs)
-- Telegram destination (managed `@devpinger_bot`)
+- Telegram destination (managed `@dev_pinger_bot`)
 - Inline actions: approve, request changes, comment, reply, merge,
   close, reopen, assign, transition
 - Filtering: mute by source / repo / project / event type, plus

@@ -1,7 +1,7 @@
 # Self-hosting
 
 DevPinger is a managed product first — the easiest path is to use
-`@devpinger_bot`. If you'd rather run your own instance (privacy, air-gap,
+`@dev_pinger_bot`. If you'd rather run your own instance (privacy, air-gap,
 custom domain), this page covers production deployment.
 
 For development setup on a laptop, see [LOCAL_SETUP.md](LOCAL_SETUP.md).

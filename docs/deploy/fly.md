@@ -80,7 +80,7 @@ fly secrets set \
   DATABASE_URL=postgres://… \
   REDIS_URL=rediss://… \
   TELEGRAM_BOT_TOKEN=… \
-  TELEGRAM_BOT_USERNAME=devpinger_bot \
+  TELEGRAM_BOT_USERNAME=dev_pinger_bot \
   TELEGRAM_WEBHOOK_SECRET=… \
   ENCRYPTION_KEY=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))") \
   GITHUB_OAUTH_CLIENT_ID=… \

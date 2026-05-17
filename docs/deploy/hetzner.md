@@ -1,6 +1,6 @@
 # Deploy on Hetzner (Docker Compose)
 
-This walks you through running `@devpinger_bot` on a Hetzner CX22 (€4/mo,
+This walks you through running `@dev_pinger_bot` on a Hetzner CX22 (€4/mo,
 2 vCPU, 4 GB RAM, Ubuntu 24.04). Same recipe works on any VPS with Docker.
 
 ## 1. Provision the VPS

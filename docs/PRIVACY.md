@@ -1,7 +1,7 @@
 # Privacy
 
 DevPinger is built so you stay in control of your data. This page explains what
-the managed bot (`@devpinger_bot`) stores, why, and how to remove it. If you
+the managed bot (`@dev_pinger_bot`) stores, why, and how to remove it. If you
 self-host, you control everything yourself — see
 [SELF_HOSTING.md](SELF_HOSTING.md).
 
@@ -73,7 +73,7 @@ database-only leak does not expose tokens.
 
 ## Sub-processors (managed bot only)
 
-If you use `@devpinger_bot` (the hosted instance), the operator's privacy
+If you use `@dev_pinger_bot` (the hosted instance), the operator's privacy
 addendum lists current sub-processors. For self-hosted installs the only
 sub-processors are the ones you wire up yourself (your VPS, your Sentry, etc.).
 

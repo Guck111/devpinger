@@ -14,28 +14,52 @@ const ru = {
   <!-- ============ EN ============ -->
   <div data-lang-show="en">
     <h1>Privacy Policy</h1>
-    <p class="lede">Plain English, no legalese. Last updated: 2026-05-15.</p>
+    <p class="lede">Plain English, no legalese. Last updated: 2026-05-17.</p>
 
-    <h2>What we collect</h2>
+    <h2>What we collect today</h2>
     <ul>
       <li><strong>Email address</strong> — when you purchase via Stripe or subscribe to updates.</li>
-      <li><strong>Telegram user ID and chat ID</strong> — when you start a conversation with <span class="mono">@dev_pinger_bot</span>, so we can deliver notifications.</li>
-      <li><strong>Source API tokens</strong> — when you connect a source (GitHub and Jira today; Stripe and Sentry once shipped). Encrypted at rest with AES-256-GCM.</li>
-      <li><strong>Event metadata</strong> — PR titles, payment amounts, error stacks — only the parts needed to render readable Telegram messages.</li>
+      <li><strong>Telegram user ID, chat ID, username, language</strong> — when you start a conversation with <span class="mono">@dev_pinger_bot</span>, so we can deliver notifications and localize the interface.</li>
+      <li><strong>OAuth tokens for connected sources</strong> — GitHub and Jira today. Encrypted at rest with AES-256-GCM; the key is held only in the server's environment, never in the database. A database-only leak does not expose tokens.</li>
+      <li><strong>Event metadata</strong> — for GitHub and Jira: PR titles, issue summaries, comment previews, URLs, actor names. Only what's needed to render a readable Telegram message.</li>
     </ul>
+
+    <h2>What we'll collect once Stripe and Sentry ship (planned)</h2>
+    <p>Stripe and Sentry sources are not yet live. When they ship, we will additionally store payment amounts and statuses, dispute metadata, and short previews of error stack traces — only the parts needed to render the Telegram message. This page will be updated before either source goes live.</p>
 
     <h2>Where we store it</h2>
     <ul>
-      <li><strong>Billing data (email, payment)</strong> — Stripe (you can read their Privacy Policy at stripe.com/privacy).</li>
-      <li><strong>Product data (Telegram IDs, source tokens, event history)</strong> — Postgres on Hetzner (Germany / EU).</li>
-      <li><strong>Encryption</strong> — all source API tokens are encrypted with AES-256-GCM. Keys rotate on a schedule.</li>
+      <li><strong>Billing data (email, payment)</strong> — Stripe (<a class="link" href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">stripe.com/privacy</a>).</li>
+      <li><strong>Product data (Telegram IDs, OAuth tokens, event history, preorders, landing-email subscriptions)</strong> — Postgres on a Hetzner VPS.</li>
+      <li><strong>Landing-site traffic</strong> — Cloudflare (CDN and Workers logs for the marketing site).</li>
+      <li><strong>Bot transport</strong> — Telegram Bot API. Your Telegram identifiers and messages necessarily transit Telegram's infrastructure (<a class="link" href="https://telegram.org/privacy" target="_blank" rel="noopener noreferrer">telegram.org/privacy</a>).</li>
+      <li><strong>Crash diagnostics</strong> — Sentry, when the operator enables it. Personally identifying fields are redacted before they leave the server.</li>
     </ul>
 
-    <h2>How long</h2>
-    <p>For active accounts: as long as the subscription is active. After cancellation or refund: an additional 30 days, then cascade-deleted.</p>
+    <h2>How long we keep it</h2>
+    <ul>
+      <li><strong>Events</strong> — pruned automatically by the retention worker. The window depends on your plan.</li>
+      <li><strong>OAuth tokens, connections, subscriptions, mutes, Telegram profile</strong> — kept while your account is active. Removed immediately when you run <code>/unsubscribe</code>.</li>
+      <li><strong>Preorder records and landing-email subscriptions</strong> — kept for accounting and product updates. Deleted on request (see below).</li>
+      <li><strong>OAuth state rows</strong> — pruned automatically after a few minutes.</li>
+    </ul>
 
-    <h2>Your right to delete</h2>
-    <p>Send <code>/unsubscribe</code> or <code>/forget_event</code> inside the bot. We support GDPR right-to-erasure. Or email <a class="link" href="mailto:info@devpinger.com">info@devpinger.com</a> and we'll handle it within 7 days.</p>
+    <h2>How to delete your data</h2>
+    <ul>
+      <li><code>/unsubscribe</code> in the bot — deletes your user row and cascades to connections, subscriptions, events, and mutes.</li>
+      <li><code>/forget_event &lt;id&gt;</code> in the bot — removes a single event.</li>
+      <li><code>/export</code> in the bot — downloads a JSON copy of your profile, connections (metadata only — tokens are not included), subscriptions, mute rules, and recent events.</li>
+      <li>Email <a class="link" href="mailto:info@devpinger.com">info@devpinger.com</a> — to delete a preorder record, a landing-email subscription, or anything else. We process within 7 days. We support GDPR right-to-erasure.</li>
+    </ul>
+
+    <p><em>Planned: a self-serve unsubscribe link inside marketing emails, and an in-bot button to delete preorder records without contacting us.</em></p>
+
+    <h2>What we don't store</h2>
+    <ul>
+      <li>Your Telegram message contents, beyond comments you explicitly type as part of a <code>/comment</code> flow (those are sent straight to GitHub or Jira and not retained).</li>
+      <li>Your private repository source code.</li>
+      <li>Your password to any service.</li>
+    </ul>
 
     <h2>Contact</h2>
     <p>Questions, complaints, or data requests: <a class="link" href="mailto:info@devpinger.com">info@devpinger.com</a>.</p>
@@ -44,28 +68,52 @@ const ru = {
   <!-- ============ RU ============ -->
   <div data-lang-show="ru" hidden>
     <h1>Политика конфиденциальности</h1>
-    <p class="lede">Простым языком, без юридического жаргона. Обновлено: 2026-05-15.</p>
+    <p class="lede">Простым языком, без юридического жаргона. Обновлено: 2026-05-17.</p>
 
-    <h2>Что собираем</h2>
+    <h2>Что собираем сейчас</h2>
     <ul>
-      <li><strong>Email</strong> — при покупке через Stripe или подписке на обновления.</li>
-      <li><strong>Telegram user ID и chat ID</strong> — когда ты начинаешь диалог с <span class="mono">@dev_pinger_bot</span>, чтобы доставлять уведомления.</li>
-      <li><strong>API-токены источников</strong> — когда подключаешь источник (сейчас GitHub и Jira; Stripe и Sentry — после отгрузки). Хранятся в БД зашифрованными по AES-256-GCM.</li>
-      <li><strong>Метаданные событий</strong> — заголовки PR, суммы платежей, стек-трейсы ошибок — только то, что нужно для читаемого Telegram-сообщения.</li>
+      <li><strong>Email</strong> — при покупке через Stripe или при подписке на обновления.</li>
+      <li><strong>Telegram user ID, chat ID, username, язык</strong> — когда ты начинаешь диалог с <span class="mono">@dev_pinger_bot</span>: нужно для доставки уведомлений и локализации интерфейса.</li>
+      <li><strong>OAuth-токены подключённых источников</strong> — сегодня это GitHub и Jira. Хранятся в БД зашифрованными по AES-256-GCM; ключ — только в окружении сервера, никогда не в базе. Утечка одной БД не раскрывает токены.</li>
+      <li><strong>Метаданные событий</strong> — для GitHub и Jira: заголовки PR, сводки issue, превью комментариев, ссылки, имена авторов. Только то, что нужно для читаемого Telegram-сообщения.</li>
     </ul>
+
+    <h2>Что начнём собирать, когда отгрузим Stripe и Sentry (перспектива)</h2>
+    <p>Источники Stripe и Sentry ещё не отгружены. Когда отгрузим, будем дополнительно хранить суммы и статусы платежей, метаданные диспутов и короткие превью стек-трейсов — только то, что нужно для Telegram-сообщения. Эту страницу обновим до запуска любого из источников.</p>
 
     <h2>Где храним</h2>
     <ul>
-      <li><strong>Биллинг (email, платежи)</strong> — Stripe (политика — stripe.com/privacy).</li>
-      <li><strong>Продуктовые данные (Telegram ID, токены источников, история событий)</strong> — Postgres в Hetzner (Германия / ЕС).</li>
-      <li><strong>Шифрование</strong> — все API-токены источников зашифрованы AES-256-GCM. Ключи ротируются по расписанию.</li>
+      <li><strong>Биллинг (email, платежи)</strong> — Stripe (<a class="link" href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">stripe.com/privacy</a>).</li>
+      <li><strong>Продуктовые данные (Telegram ID, OAuth-токены, история событий, предзаказы, подписки на email-рассылку)</strong> — Postgres на VPS Hetzner.</li>
+      <li><strong>Трафик лендинга</strong> — Cloudflare (CDN и логи Workers для маркетингового сайта).</li>
+      <li><strong>Транспорт бота</strong> — Telegram Bot API. Твои Telegram-идентификаторы и сообщения проходят через инфраструктуру Telegram (<a class="link" href="https://telegram.org/privacy" target="_blank" rel="noopener noreferrer">telegram.org/privacy</a>).</li>
+      <li><strong>Диагностика сбоев</strong> — Sentry, когда оператор его включает. Личные поля редактируются до отправки.</li>
     </ul>
 
     <h2>Сколько храним</h2>
-    <p>Для активного аккаунта — пока действует подписка. После отмены или возврата — ещё 30 дней, затем каскадное удаление.</p>
+    <ul>
+      <li><strong>События</strong> — чистятся автоматически воркером retention. Окно зависит от твоего тарифа.</li>
+      <li><strong>OAuth-токены, соединения, подписки, mute-правила, профиль Telegram</strong> — пока твой аккаунт активен. Удаляются сразу при <code>/unsubscribe</code>.</li>
+      <li><strong>Записи предзаказов и подписки на email-рассылку</strong> — храним для бухгалтерии и продуктовых апдейтов. Удаляются по запросу (см. ниже).</li>
+      <li><strong>OAuth state-строки</strong> — чистятся автоматически через несколько минут.</li>
+    </ul>
 
-    <h2>Право на удаление</h2>
-    <p>Отправь <code>/unsubscribe</code> или <code>/forget_event</code> в боте. Мы поддерживаем GDPR right-to-erasure. Или напиши на <a class="link" href="mailto:info@devpinger.com">info@devpinger.com</a> — обработаем в течение 7 дней.</p>
+    <h2>Как удалить свои данные</h2>
+    <ul>
+      <li><code>/unsubscribe</code> в боте — удаляет твою строку user и каскадно соединения, подписки, события и mute-правила.</li>
+      <li><code>/forget_event &lt;id&gt;</code> в боте — удаляет одно событие.</li>
+      <li><code>/export</code> в боте — выгружает JSON с твоим профилем, соединениями (только метаданные — токены не включены), подписками, mute-правилами и недавними событиями.</li>
+      <li>Письмо на <a class="link" href="mailto:info@devpinger.com">info@devpinger.com</a> — удалить запись предзаказа, email-подписку или что-то ещё. Обрабатываем в течение 7 дней. Поддерживаем GDPR right-to-erasure.</li>
+    </ul>
+
+    <p><em>Перспектива: self-serve-ссылка отписки в маркетинговых письмах и кнопка в боте для удаления данных предзаказа без обращения к нам.</em></p>
+
+    <h2>Что мы не храним</h2>
+    <ul>
+      <li>Содержимое твоих Telegram-сообщений — за исключением комментариев, которые ты явно вводишь в потоке <code>/comment</code> (они уходят напрямую в GitHub/Jira и у нас не сохраняются).</li>
+      <li>Исходный код твоих приватных репозиториев.</li>
+      <li>Пароли от каких-либо сервисов.</li>
+    </ul>
 
     <h2>Контакты</h2>
     <p>Вопросы, жалобы, запросы данных — <a class="link" href="mailto:info@devpinger.com">info@devpinger.com</a>.</p>

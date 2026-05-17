@@ -1,6 +1,6 @@
 # User guide
 
-Open `@devpinger_bot` in Telegram, tap `/start`, and follow the prompts.
+Open `@dev_pinger_bot` in Telegram, tap `/start`, and follow the prompts.
 This page lists every command and inline action the V1 bot understands.
 
 ## Commands
