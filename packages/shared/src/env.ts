@@ -17,7 +17,6 @@ const serverEnvSchema = z.object({
 	GITHUB_OAUTH_CLIENT_ID: z.string().min(1),
 	GITHUB_OAUTH_CLIENT_SECRET: z.string().min(1),
 	GITHUB_OAUTH_REDIRECT_URI: z.string().url(),
-	GITHUB_WEBHOOK_SECRET_SEED: z.string().min(32),
 	JIRA_OAUTH_CLIENT_ID: z.string().min(1),
 	JIRA_OAUTH_CLIENT_SECRET: z.string().min(1),
 	JIRA_OAUTH_REDIRECT_URI: z.string().url(),

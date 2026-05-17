@@ -49,7 +49,7 @@ Fill in every required variable. Minimum set:
 - `TELEGRAM_WEBHOOK_SECRET` — 16+ char random string.
 - `ENCRYPTION_KEY` — 64 hex chars: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
 - `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET`,
-  `GITHUB_OAUTH_REDIRECT_URI`, `GITHUB_WEBHOOK_SECRET_SEED`.
+  `GITHUB_OAUTH_REDIRECT_URI`.
 - `JIRA_OAUTH_CLIENT_ID`, `JIRA_OAUTH_CLIENT_SECRET`,
   `JIRA_OAUTH_REDIRECT_URI` (if you want Jira).
 - `POSTGRES_PASSWORD` — non-default for prod.

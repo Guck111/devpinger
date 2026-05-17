@@ -86,7 +86,6 @@ fly secrets set \
   GITHUB_OAUTH_CLIENT_ID=… \
   GITHUB_OAUTH_CLIENT_SECRET=… \
   GITHUB_OAUTH_REDIRECT_URI=https://devpinger-server.fly.dev/oauth/github/callback \
-  GITHUB_WEBHOOK_SECRET_SEED=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))") \
   JIRA_OAUTH_CLIENT_ID=… \
   JIRA_OAUTH_CLIENT_SECRET=… \
   JIRA_OAUTH_REDIRECT_URI=https://devpinger-server.fly.dev/oauth/jira/callback \

@@ -98,7 +98,7 @@ Critical values to populate:
 - `DATABASE_URL` — Supabase transaction pooler URL (port 6543, `?sslmode=require`)
 - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET`
 - `ENCRYPTION_KEY` — generate fresh: `openssl rand -hex 32`. **Persist this** — it decrypts OAuth tokens already in the DB.
-- `GITHUB_OAUTH_*`, `JIRA_OAUTH_*`, `GITHUB_WEBHOOK_SECRET_SEED`
+- `GITHUB_OAUTH_*`, `JIRA_OAUTH_*`
 
 ### 4. First deploy
 

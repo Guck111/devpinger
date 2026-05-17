@@ -61,7 +61,6 @@ ENCRYPTION_KEY=<node -e "console.log(require('crypto').randomBytes(32).toString(
 GITHUB_OAUTH_CLIENT_ID=...
 GITHUB_OAUTH_CLIENT_SECRET=...
 GITHUB_OAUTH_REDIRECT_URI=https://<your-domain>/oauth/github/callback
-GITHUB_WEBHOOK_SECRET_SEED=<openssl rand -hex 32>
 
 JIRA_OAUTH_CLIENT_ID=...
 JIRA_OAUTH_CLIENT_SECRET=...
@@ -149,12 +148,13 @@ a throwaway compose stack — an untested backup is a wish, not a backup.
 
 ## Webhook secrets
 
-Each GitHub repo subscription gets its own webhook secret derived
-inside the adapter (see
-[setupRepoWebhook](../packages/sources/github/src/subscriptions.ts)).
-The seed in `GITHUB_WEBHOOK_SECRET_SEED` is server-side only — rotating
-it invalidates existing subscriptions and requires re-running the
-"add repo" flow per user.
+Each GitHub repo subscription gets its own webhook secret minted at
+registration time via `randomBytes(32)` (see
+[adapter.ts](../packages/sources/github/src/adapter.ts) →
+`subscriptionCreate`). Secrets live in `subscriptions.webhook_secret`
+encrypted at rest only insofar as the database disk is encrypted —
+treat database access and the encryption key as equivalent risk
+surfaces.
 
 ## Monitoring
 

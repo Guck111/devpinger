@@ -110,9 +110,8 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 Copy the 64-char hex string into `ENCRYPTION_KEY`.
 
-Generate `TELEGRAM_WEBHOOK_SECRET` and `GITHUB_WEBHOOK_SECRET_SEED` the
-same way (any 16+ random characters work — `openssl rand -hex 32` is
-fine too).
+Generate `TELEGRAM_WEBHOOK_SECRET` the same way (any 16+ random
+characters work — `openssl rand -hex 32` is fine too).
 
 ## 6. Fill out `.env`
 
@@ -127,8 +126,7 @@ At minimum, set:
 - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET`
 - `ENCRYPTION_KEY`
 - `GITHUB_OAUTH_CLIENT_ID`, `GITHUB_OAUTH_CLIENT_SECRET`,
-  `GITHUB_OAUTH_REDIRECT_URI=https://dev.devpinger.com/oauth/github/callback`,
-  `GITHUB_WEBHOOK_SECRET_SEED`
+  `GITHUB_OAUTH_REDIRECT_URI=https://dev.devpinger.com/oauth/github/callback`
 - `JIRA_OAUTH_CLIENT_ID`, `JIRA_OAUTH_CLIENT_SECRET`,
   `JIRA_OAUTH_REDIRECT_URI=https://dev.devpinger.com/oauth/jira/callback`
 

@@ -24,7 +24,6 @@ const seedStubEnv = (): void => {
 	process.env.GITHUB_OAUTH_CLIENT_ID ??= "test-github-id"
 	process.env.GITHUB_OAUTH_CLIENT_SECRET ??= "test-github-secret"
 	process.env.GITHUB_OAUTH_REDIRECT_URI ??= "http://localhost:3001/oauth/github/callback"
-	process.env.GITHUB_WEBHOOK_SECRET_SEED ??= "test-github-webhook-secret-seed-1234567890abcdef"
 	process.env.JIRA_OAUTH_CLIENT_ID ??= "test-jira-id"
 	process.env.JIRA_OAUTH_CLIENT_SECRET ??= "test-jira-secret"
 	process.env.JIRA_OAUTH_REDIRECT_URI ??= "http://localhost:3001/oauth/jira/callback"
