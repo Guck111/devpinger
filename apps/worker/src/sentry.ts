@@ -10,15 +10,15 @@ let initialised = false
 // frequently lands in event.extra; strip body/payload entries defensively.
 const stripUntrustedFields = (event: Sentry.ErrorEvent): Sentry.ErrorEvent => {
 	if (event.extra) {
-		delete event.extra.body
-		delete event.extra.rawBody
-		delete event.extra.payload
+		event.extra.body = undefined
+		event.extra.rawBody = undefined
+		event.extra.payload = undefined
 	}
 	if (event.breadcrumbs) {
 		for (const b of event.breadcrumbs) {
 			if (b.data) {
-				delete b.data.body
-				delete b.data.payload
+				b.data.body = undefined
+				b.data.payload = undefined
 				if (typeof b.data.url === "string") b.data.url = String(redact(b.data.url))
 			}
 		}
