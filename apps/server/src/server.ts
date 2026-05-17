@@ -14,6 +14,7 @@ import { jiraOauthRoutes } from "./routes/oauth/jira.js"
 import { telegramRoutes } from "./routes/telegram.js"
 import { githubWebhookRoutes } from "./routes/webhooks/github.js"
 import { jiraWebhookRoutes } from "./routes/webhooks/jira.js"
+import { stripeWebhookRoutes } from "./routes/webhooks/stripe.js"
 import { Sentry, isSentryEnabled } from "./sentry.js"
 
 export interface AppContext {
@@ -78,6 +79,7 @@ export const createApp = async (extensions: AppExtensions = {}) => {
 	await app.register(jiraOauthRoutes)
 	await app.register(githubWebhookRoutes)
 	await app.register(jiraWebhookRoutes)
+	await app.register(stripeWebhookRoutes)
 
 	if (extensions.registerRoutes) {
 		await extensions.registerRoutes(app as unknown as FastifyInstance, ctx)

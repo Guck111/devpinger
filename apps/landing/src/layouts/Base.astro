@@ -4,9 +4,11 @@ interface Props {
   description?: string;
   path: string;
   ru?: Record<string, string>;
+  noindex?: boolean;
 }
 
-const { title, description, path, ru = {} } = Astro.props;
+const { title, description, path, ru = {}, noindex = false } = Astro.props;
+const canonical = `https://preorder.devpinger.com${path}`;
 ---
 <!doctype html>
 <html lang="en">
@@ -15,15 +17,16 @@ const { title, description, path, ru = {} } = Astro.props;
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>{title}</title>
 {description && <meta name="description" content={description} />}
+{noindex && <meta name="robots" content="noindex, follow" />}
 <meta property="og:title" content={title} />
 {description && <meta property="og:description" content={description} />}
 <meta property="og:type" content="website" />
-<meta property="og:url" content={`https://devpinger.com${path}`} />
-<meta property="og:image" content="https://devpinger.com/og-image.svg" />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content="https://preorder.devpinger.com/og-image.svg" />
+<link rel="canonical" href={canonical} />
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#0c0d0e" media="(prefers-color-scheme: dark)" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -173,8 +176,8 @@ const { title, description, path, ru = {} } = Astro.props;
     <div class="foot-links">
       <a href="/privacy" data-i18n="foot.privacy">Privacy</a>
       <a href="/terms" data-i18n="foot.terms">Terms (preorder)</a>
-      <a href="https://t.me/dev_pinger_bot" target="_blank" rel="noopener" data-i18n="foot.status">Status</a>
-      <a href="https://github.com/Guck111/devpinger" target="_blank" rel="noopener" data-i18n="foot.source">Source</a>
+      <a href="https://t.me/dev_pinger_bot" target="_blank" rel="noopener noreferrer" data-i18n="foot.status">Status</a>
+      <a href="https://github.com/Guck111/devpinger" target="_blank" rel="noopener noreferrer" data-i18n="foot.source">Source</a>
     </div>
   </div>
 </footer>

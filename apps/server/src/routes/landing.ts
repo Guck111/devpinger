@@ -1,6 +1,8 @@
-import { landingSubscribers } from "@devpinger/db"
+import { landingSubscribers, preorders } from "@devpinger/db"
+import { eq, sql } from "drizzle-orm"
 import type { FastifyInstance } from "fastify"
 import { z } from "zod"
+import { env } from "../config.js"
 import { db } from "../db.js"
 import { logger } from "../logger.js"
 
@@ -46,6 +48,32 @@ export const landingRoutes = async (app: FastifyInstance) => {
 				return reply.code(200).send({ ok: true })
 			} catch (err) {
 				logger.error({ err }, "landing.subscribe.error")
+				return reply.code(500).send({ ok: false, error: "internal error" })
+			}
+		},
+	)
+
+	app.get(
+		"/v1/landing/seats",
+		{
+			config: {
+				rateLimit: { max: 120, timeWindow: "1 minute" },
+			},
+		},
+		async (_req, reply) => {
+			try {
+				const rows = await db
+					.select({ count: sql<number>`count(*)::int` })
+					.from(preorders)
+					.where(eq(preorders.status, "paid"))
+				const sold = rows[0]?.count ?? 0
+				const total = env.PREORDER_TOTAL_SEATS
+				// Short cache to avoid hammering the DB from the public landing while
+				// still reflecting new sales within a minute.
+				reply.header("cache-control", "public, max-age=60")
+				return reply.code(200).send({ sold, total })
+			} catch (err) {
+				logger.error({ err }, "landing.seats.error")
 				return reply.code(500).send({ ok: false, error: "internal error" })
 			}
 		},

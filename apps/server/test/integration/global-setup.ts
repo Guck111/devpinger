@@ -28,6 +28,8 @@ const seedStubEnv = (): void => {
 	process.env.JIRA_OAUTH_CLIENT_ID ??= "test-jira-id"
 	process.env.JIRA_OAUTH_CLIENT_SECRET ??= "test-jira-secret"
 	process.env.JIRA_OAUTH_REDIRECT_URI ??= "http://localhost:3001/oauth/jira/callback"
+	process.env.STRIPE_WEBHOOK_SECRET ??= "whsec_integration_test_secret"
+	process.env.PREORDER_TOTAL_SEATS ??= "30"
 	process.env.LOG_LEVEL ??= "warn"
 }
 

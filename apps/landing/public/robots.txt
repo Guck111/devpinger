@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://devpinger.com/sitemap.xml
+Sitemap: https://preorder.devpinger.com/sitemap.xml
