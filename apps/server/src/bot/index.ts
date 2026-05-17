@@ -136,8 +136,8 @@ bot.callbackQuery(/^hub:conn:disconnect:(github|jira)$/, async (ctx) => {
 	if (!tgId) return
 	const user = await getUserByTelegramId(db, tgId)
 	if (!user) return
-	const { deleteConnection } = await import("../services/connections.js")
-	const { removed } = await deleteConnection(db, user.id, provider)
+	const { disconnectProvider } = await import("../services/connections.js")
+	const { removed } = await disconnectProvider(db, user.id, provider)
 	if (!removed) return
 	const msgKey =
 		provider === "github"

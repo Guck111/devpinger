@@ -115,3 +115,22 @@ export const deactivateAllForUser = async (db: typeof Db, userId: string): Promi
 		.returning({ id: subscriptions.id })
 	return rows.length
 }
+
+export const deactivateAllForUserProvider = async (
+	db: typeof Db,
+	userId: string,
+	provider: OauthProvider,
+): Promise<SubscriptionRow[]> => {
+	const rows = await db
+		.update(subscriptions)
+		.set({ isActive: false })
+		.where(
+			and(
+				eq(subscriptions.userId, userId),
+				eq(subscriptions.provider, provider),
+				eq(subscriptions.isActive, true),
+			),
+		)
+		.returning()
+	return rows.map(toSubscriptionRow)
+}

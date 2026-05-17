@@ -7,6 +7,7 @@ import { cipher } from "../crypto.js"
 import type { db as Db } from "../db.js"
 import { logger } from "../logger.js"
 import type { OauthProvider } from "./oauth-state.js"
+import { deactivateAllForUserProvider, listSubscriptions } from "./subscriptions.js"
 
 export interface UpsertConnectionInput {
 	userId: string
@@ -102,6 +103,43 @@ export const deleteConnection = async (
 		.where(and(eq(connections.userId, userId), eq(connections.provider, provider)))
 		.returning({ id: connections.id })
 	return { removed: result.length > 0 }
+}
+
+// Disconnect a provider end-to-end: best-effort remove webhooks at the
+// provider side, deactivate orphaned subscriptions, then drop the connection.
+// Subscriptions are deactivated rather than deleted so reconnect + re-add of
+// the same repo/project naturally reactivates the row via onConflictDoUpdate.
+// Connection is deleted LAST because webhook removal needs its credentials.
+export const disconnectProvider = async (
+	db: typeof Db,
+	userId: string,
+	provider: OauthProvider,
+): Promise<{ removed: boolean }> => {
+	const connection = await getConnection(db, userId, provider)
+	if (connection && provider === "github") {
+		const subs = await listSubscriptions(db, userId, "github")
+		const active = subs.filter((s) => s.isActive)
+		if (active.length > 0) {
+			const { createGithubClient, removeRepoWebhook } = await import("@devpinger/sources-github")
+			const client = createGithubClient({ accessToken: connection.credentials.accessToken })
+			for (const sub of active) {
+				const [owner, repo] = sub.providerScopeId.split("/")
+				const hookId = Number(sub.webhookId)
+				if (owner && repo && Number.isFinite(hookId)) {
+					try {
+						await removeRepoWebhook(client, { owner, repo, hookId })
+					} catch (err) {
+						logger.warn(
+							{ err, subId: sub.id, scopeId: sub.providerScopeId },
+							"github removeRepoWebhook failed during disconnect; deactivating anyway",
+						)
+					}
+				}
+			}
+		}
+	}
+	await deactivateAllForUserProvider(db, userId, provider)
+	return await deleteConnection(db, userId, provider)
 }
 
 export const updateConnectionCredentials = async (
