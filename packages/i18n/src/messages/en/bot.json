@@ -100,7 +100,8 @@
 		"notFound": "This PR or issue is no longer reachable (deleted or closed).",
 		"forbidden": "You do not have permission for this action on the provider side.",
 		"providerRateLimit": "The provider is rate-limiting us right now — try again in a moment.",
-		"reconnect": "Your {provider} connection expired or was revoked. Reconnect via /start."
+		"reconnect": "Your {provider} connection expired or was revoked. Reconnect via /start.",
+		"noTransitions": "No transitions are available for this issue right now."
 	},
 	"actionLabel": {
 		"prOpened": "🟢 PR opened",
@@ -162,6 +163,8 @@
 		"merged": "🚀 Merged.",
 		"assigned": "👤 Assigned.",
 		"transitioned": "🔄 Transitioned to {status}.",
+		"chooseTransition": "Pick the new status:",
+		"statusChanged": "🔄 Status updated.",
 		"snoozed": "😴 Snoozed until {until}.",
 		"muted": "🔕 Muted {scope}.",
 		"diffEmpty": "Diff is empty.",

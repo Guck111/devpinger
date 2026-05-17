@@ -355,9 +355,79 @@ export const handleTransition = async (ctx: Callback, eventId: string): Promise<
 		await replyError(ctx, "errors.notFound")
 		return
 	}
+	const connection = await getFreshJiraConnection(db, event.userId)
+	if (!connection) {
+		await replyError(ctx, "errors.reconnect", { provider: "jira" })
+		return
+	}
+	const metadata = (event.metadata as Record<string, unknown>) ?? {}
+	const issueKey = typeof metadata.issueKey === "string" ? metadata.issueKey : null
+	if (!issueKey) {
+		await replyError(ctx, "errors.notSupported")
+		return
+	}
+	const { createJiraClient, listTransitions } = await import("@devpinger/sources-jira")
+	const client = createJiraClient({
+		accessToken: connection.credentials.accessToken,
+		cloudId: connection.credentials.jiraCloudId ?? "",
+	})
 	await ctx.answerCallbackQuery()
-	await ctx.reply(ctx.t("errors.notSupported"))
+	try {
+		const transitions = await listTransitions(client, { issueIdOrKey: issueKey })
+		if (transitions.length === 0) {
+			await ctx.reply(ctx.t("errors.noTransitions"))
+			return
+		}
+		const kb = new InlineKeyboard()
+		for (const t of transitions) {
+			kb.text(t.name, `jira:do-transition:${eventId}:${t.id}`).row()
+		}
+		await ctx.reply(ctx.t("actionResult.chooseTransition"), { reply_markup: kb })
+	} catch (err) {
+		if (statusFromError(err) === 401) {
+			await ctx.reply(ctx.t("errors.reconnect", { provider: "jira" }))
+			return
+		}
+		logger.error({ err, eventId }, "list transitions failed")
+		await ctx.reply(ctx.t("errors.actionFailed", { reason: String((err as Error).message) }))
+	}
 	void clearPendingAction
+}
+
+export const performJiraTransition = async (
+	ctx: Callback,
+	eventId: string,
+	transitionId: string,
+): Promise<void> => {
+	const event = await loadEventForUser(ctx, eventId)
+	if (!event || event.source !== "jira") {
+		await replyError(ctx, "errors.notFound")
+		return
+	}
+	const connection = await getFreshJiraConnection(db, event.userId)
+	if (!connection) {
+		await replyError(ctx, "errors.reconnect", { provider: "jira" })
+		return
+	}
+	const adapter = sourceRegistry.require("jira")
+	const action = adapter.actions.transition
+	if (!action) {
+		await replyError(ctx, "errors.notSupported")
+		return
+	}
+	const payload = jiraActionPayload(event)
+	await ctx.answerCallbackQuery()
+	try {
+		await action({ type: "oauth", ...connection.credentials }, { ...payload, transitionId })
+		await ctx.reply(ctx.t("actionResult.statusChanged"))
+	} catch (err) {
+		if (statusFromError(err) === 401) {
+			await ctx.reply(ctx.t("errors.reconnect", { provider: "jira" }))
+			return
+		}
+		logger.error({ err, eventId, transitionId }, "jira transition failed")
+		await ctx.reply(ctx.t("errors.actionFailed", { reason: String((err as Error).message) }))
+	}
 }
 
 export const handleReply = handleComment

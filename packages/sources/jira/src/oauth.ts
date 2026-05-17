@@ -6,11 +6,15 @@
 const AUTHORIZE_URL = "https://auth.atlassian.com/authorize"
 const TOKEN_URL = "https://auth.atlassian.com/oauth/token"
 
-// Read-only scopes — comments / assignment actions ship in a follow-up.
-// `manage:jira-webhook` is required to register Dynamic Webhooks via
-// POST /rest/api/3/webhook (used by services/jira-webhooks.ts).
+// Scopes needed end-to-end:
+// - read:jira-work / read:jira-user — issue/comment/transition payloads
+// - write:jira-work — POST /comment, POST /transitions, PUT /assignee
+// - offline_access — long-lived refresh token
+// - manage:jira-webhook — register Dynamic Webhooks via
+//   POST /rest/api/3/webhook (used by services/jira-webhooks.ts)
 export const DEFAULT_JIRA_SCOPES = [
 	"read:jira-work",
+	"write:jira-work",
 	"read:jira-user",
 	"offline_access",
 	"manage:jira-webhook",

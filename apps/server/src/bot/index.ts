@@ -31,6 +31,7 @@ import {
 	handleSnooze,
 	handleTransition,
 	handleViewDiff,
+	performJiraTransition,
 	submitPendingComment,
 } from "./actions.js"
 import { handleHelpCommand } from "./help.js"
@@ -538,6 +539,12 @@ bot.callbackQuery(/^act:merge:(.+)$/, async (ctx) => {
 bot.callbackQuery(/^act:trans:(.+)$/, async (ctx) => {
 	const eventId = ctx.match?.[1]
 	if (eventId) await handleTransition(ctx, eventId)
+})
+
+bot.callbackQuery(/^jira:do-transition:([^:]+):(.+)$/, async (ctx) => {
+	const eventId = ctx.match?.[1]
+	const transitionId = ctx.match?.[2]
+	if (eventId && transitionId) await performJiraTransition(ctx, eventId, transitionId)
 })
 
 bot.callbackQuery(/^act:(snz1h|snz4h|snz1d):(.+)$/, async (ctx) => {
