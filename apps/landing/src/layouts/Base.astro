@@ -9,6 +9,7 @@ interface Props {
 
 const { title, description, path, ru = {}, noindex = false } = Astro.props;
 const canonical = `https://preorder.devpinger.com${path}`;
+const plausibleDomain = import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN;
 ---
 <!doctype html>
 <html lang="en">
@@ -34,6 +35,13 @@ const canonical = `https://preorder.devpinger.com${path}`;
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+{plausibleDomain && (
+  <>
+    <script is:inline defer data-domain={plausibleDomain} src="https://plausible.io/js/script.tagged-events.outbound-links.js"></script>
+    <script is:inline set:html={`window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}`}></script>
+  </>
+)}
 
 <style is:global>
   :root {

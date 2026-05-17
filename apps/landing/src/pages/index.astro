@@ -1,5 +1,6 @@
 ---
 const API_BASE = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:3001";
+const plausibleDomain = import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN;
 ---
 <!doctype html>
 <html lang="en">
@@ -29,7 +30,12 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:3001";
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-<!-- TODO: подключить Plausible или Cloudflare Web Analytics. Скрипт-тег вставить здесь, см. brief. -->
+{plausibleDomain && (
+  <>
+    <script is:inline defer data-domain={plausibleDomain} src="https://plausible.io/js/script.tagged-events.outbound-links.js"></script>
+    <script is:inline set:html={`window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}`}></script>
+  </>
+)}
 
 <style is:global>
   :root {
@@ -650,7 +656,7 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:3001";
     </p>
 
     <div class="hero-cta reveal d3">
-      <a class="btn btn-primary btn-lg" href="https://buy.stripe.com/eVq7sK1AOgdCctnejTfMA00" data-cta="primary" target="_blank" rel="noopener noreferrer">
+      <a class="btn btn-primary btn-lg plausible-event-name=CTA_Lifetime plausible-event-location=hero" href="https://buy.stripe.com/eVq7sK1AOgdCctnejTfMA00" data-cta="primary" target="_blank" rel="noopener noreferrer">
         <span data-i18n="hero.cta.primary">Get Lifetime Access — $9</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </a>
@@ -874,7 +880,7 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:3001";
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span data-i18n="s5.c1.f4">Lifetime updates</span></li>
           <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span data-i18n="s5.c1.f5">Full refund if not delivered in 60 days</span></li>
         </ul>
-        <a class="btn btn-primary btn-lg" href="https://buy.stripe.com/eVq7sK1AOgdCctnejTfMA00" data-cta="primary" target="_blank" rel="noopener noreferrer">
+        <a class="btn btn-primary btn-lg plausible-event-name=CTA_Lifetime plausible-event-location=pricing" href="https://buy.stripe.com/eVq7sK1AOgdCctnejTfMA00" data-cta="primary" target="_blank" rel="noopener noreferrer">
           <span data-i18n="s5.c1.btn">Get Lifetime — $9</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </a>
@@ -1070,6 +1076,9 @@ const API_BASE = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:3001";
           btn.textContent = isRu
             ? 'Спасибо — увидимся через 2 недели.'
             : 'Thanks — see you in 2 weeks.';
+          if (typeof window.plausible === 'function') {
+            window.plausible('Email_Submit', { props: { source: 'landing-updates' } });
+          }
         } else {
           btn.disabled = false;
           btn.textContent = isRu ? 'Не вышло, попробуй ещё' : 'Failed, try again';
