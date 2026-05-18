@@ -1,4 +1,5 @@
 import { landingSubscribers, preorders } from "@devpinger/db"
+import { maskEmail } from "@devpinger/shared"
 import { eq, sql } from "drizzle-orm"
 import type { FastifyInstance } from "fastify"
 import { z } from "zod"
@@ -29,7 +30,7 @@ export const landingRoutes = async (app: FastifyInstance) => {
 
 			// Silently accept honeypot submissions to avoid signalling bot detection.
 			if (parsed.data.hp && parsed.data.hp.trim().length > 0) {
-				logger.info({ email: parsed.data.email }, "landing.subscribe.honeypot")
+				logger.info({ email: maskEmail(parsed.data.email) }, "landing.subscribe.honeypot")
 				return reply.code(200).send({ ok: true })
 			}
 
@@ -42,7 +43,7 @@ export const landingRoutes = async (app: FastifyInstance) => {
 					})
 					.onConflictDoNothing({ target: landingSubscribers.email })
 				logger.info(
-					{ email: parsed.data.email, source: parsed.data.source },
+					{ email: maskEmail(parsed.data.email), source: parsed.data.source },
 					"landing.subscribe.ok",
 				)
 				return reply.code(200).send({ ok: true })

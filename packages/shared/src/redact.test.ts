@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { redact, redactObject } from "./redact.js"
+import { maskEmail, redact, redactObject } from "./redact.js"
 
 describe("redact", () => {
 	it("masks GitHub OAuth tokens", () => {
@@ -48,5 +48,26 @@ describe("redact", () => {
 
 	it("redactObject returns undefined when given undefined", () => {
 		expect(redactObject(undefined)).toBeUndefined()
+	})
+})
+
+describe("maskEmail", () => {
+	it("masks a typical address keeping the first char and full domain", () => {
+		expect(maskEmail("alice@example.com")).toBe("a***@example.com")
+	})
+
+	it("masks single-char local parts entirely", () => {
+		expect(maskEmail("a@b.co")).toBe("****@b.co")
+	})
+
+	it("passes through null and undefined", () => {
+		expect(maskEmail(null)).toBeNull()
+		expect(maskEmail(undefined)).toBeUndefined()
+	})
+
+	it("returns garbage input unchanged", () => {
+		expect(maskEmail("not-an-email")).toBe("not-an-email")
+		expect(maskEmail("@example.com")).toBe("@example.com")
+		expect(maskEmail("trailing@")).toBe("trailing@")
 	})
 })

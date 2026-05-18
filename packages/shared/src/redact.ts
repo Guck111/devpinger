@@ -26,3 +26,16 @@ export const redactObject = (
 	for (const [k, v] of Object.entries(context)) out[k] = redact(v)
 	return out
 }
+
+// Mask the local part of an email to keep logs auditable without dumping
+// raw PII to stdout: "alice@example.com" -> "a***@example.com". Returns
+// the input unchanged if it doesn't look like an email at all.
+export const maskEmail = (value: string | null | undefined): string | null | undefined => {
+	if (!value) return value
+	const at = value.lastIndexOf("@")
+	if (at <= 0 || at === value.length - 1) return value
+	const local = value.slice(0, at)
+	const domain = value.slice(at + 1)
+	const head = local.length > 1 ? local[0] : "*"
+	return `${head}***@${domain}`
+}

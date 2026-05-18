@@ -1,4 +1,5 @@
 import { preorders } from "@devpinger/db"
+import { maskEmail } from "@devpinger/shared"
 import type { FastifyInstance, FastifyRequest } from "fastify"
 import { z } from "zod"
 import { env } from "../../config.js"
@@ -146,7 +147,7 @@ export const stripeWebhookRoutes = async (app: FastifyInstance) => {
 					{
 						eventId: parsed.data.id,
 						sessionId: session.id,
-						email,
+						email: maskEmail(email),
 						amountCents,
 						currency,
 						isNew,
