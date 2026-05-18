@@ -75,7 +75,9 @@ Forking V1 is never required:
   env vars
 - Bot commands extend through the same `Bot` instance — private
   registers `/upgrade`, `/billing`, etc. after `createApp` returns
-- I18n: `createTranslator(extraMessages?)` accepts additional keys
+- I18n: `createTranslator(messages)` takes a flat dictionary; the
+  private repo composes V1 keys with its own via plain object spread
+  before passing them in
 
 ## What lives where
 

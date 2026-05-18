@@ -76,15 +76,30 @@ a new one on every deploy.
 
 ## Deploy
 
-The repo ships `docker-compose.prod.yml` which brings up postgres,
-redis, server, and worker in one command. After filling `.env`:
+The repo ships `infra/docker-compose.prod.yml` which brings up redis,
+server, worker, and Caddy (TLS reverse proxy) in one command. Postgres
+is **not** part of this stack — point `DATABASE_URL` at a managed
+service (Supabase, Neon, RDS, etc.). After filling `.env.prod` at the
+repo root:
 
 ```sh
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f infra/docker-compose.prod.yml --env-file .env.prod up -d --build
 ```
 
-A one-shot `migrate` service runs `pnpm --filter @devpinger/db migrate`
-before `server`/`worker` start, so the schema is always in sync.
+Migrations are **not** auto-run by the prod compose stack itself; the
+shipped `.github/workflows/ci.yml` runs `pnpm db:migrate` against
+`PRODUCTION_DATABASE_URL` *before* the SSH deploy, so a push to `main`
+gets the schema applied and the containers rolled in one go. For
+manual deploys (no CI), apply the same command yourself before
+`infra/deploy.sh`:
+
+```sh
+DATABASE_URL=... pnpm --filter @devpinger/db migrate
+```
+
+Run that from any host with Node 22 + pnpm and network access to the
+database (your laptop with the prod `DATABASE_URL` exported works).
+The runner is idempotent — re-running on an up-to-date DB is a no-op.
 
 Provider-specific walkthroughs:
 
@@ -95,8 +110,11 @@ Provider-specific walkthroughs:
 - [Railway](deploy/railway.md) — managed Postgres + Redis + per-service
   Dockerfile deploys.
 
-Both Dockerfiles use multi-stage builds (deps → runtime) and run as
-`node:22-alpine` with `tini` as PID 1, so signals propagate cleanly and
+The production multi-stage build lives at `infra/Dockerfile` (two final
+targets, `server` and `worker`); the per-app Dockerfiles
+(`apps/server/Dockerfile`, `apps/worker/Dockerfile`) are simpler
+single-stage variants used by Fly and Railway. Both flavours run as
+`node` user with `tini` as PID 1, so signals propagate cleanly and
 in-flight webhooks finish before exit.
 
 In production, `NODE_ENV=production` makes the server register a
@@ -133,9 +151,16 @@ no-op.
 ## Backups
 
 Postgres holds users, connections (encrypted OAuth tokens), event
-history, and mute rules. Use `infra/backup-postgres.sh` for nightly
-`pg_dump -Fc` dumps with 30-day retention; `infra/restore-postgres.sh`
-restores from one. Cron snippet:
+history, and mute rules.
+
+If you point `DATABASE_URL` at a managed service (Supabase, Neon, RDS),
+use that provider's backups — point-in-time recovery on paid tiers is
+the simplest path.
+
+If you run Postgres yourself in Docker, the legacy helpers
+`infra/backup-postgres.sh` and `infra/restore-postgres.sh` do
+nightly `pg_dump -Fc` against a local `devpinger-postgres` container
+with 30-day retention. Cron snippet:
 
 ```sh
 0 3 * * * /opt/devpinger/infra/backup-postgres.sh >> /var/log/devpinger-backup.log 2>&1

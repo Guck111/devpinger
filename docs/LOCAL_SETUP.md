@@ -150,9 +150,10 @@ In the bot:
 
 1. Tap **Connect GitHub**, complete the OAuth flow in the browser.
    You're redirected back to Telegram.
-2. Send `/repos` — the bot lists repositories your token can access.
-   (Subscribing UI is V1.5 — for now, follow the README's "add a
-   subscription" SQL snippet or wire one manually.)
+2. Send `/repos` — the bot lists repositories your token can access
+   and gives each row a ➕ button. Tap to subscribe; webhook
+   registration on the GitHub side happens automatically. Same flow
+   for `/projects` with Jira.
 3. Push a PR in that repo and watch it land in the bot.
 
 ## Troubleshooting
@@ -163,8 +164,10 @@ In the bot:
   URL in the OAuth app doesn't match `PUBLIC_BASE_URL`. Check both.
 - **`ENCRYPTION_KEY must be 64 hex characters`** — the env validator
   refuses anything else; regenerate with the `node -e` command above.
-- **Webhook deliveries fail with 401** — the GitHub OAuth App's webhook
-  secret doesn't match the subscription's secret. V1 derives the
-  secret per-subscription; check
+- **Webhook deliveries fail with 401** — the secret stored on the
+  GitHub/Jira side doesn't match what V1 minted at subscription
+  time. V1 generates a fresh per-subscription secret on the GitHub
+  side automatically; if you're poking at the SQL directly, re-run
+  the `/repos` add flow instead. The HMAC matching logic lives in
   [apps/server/src/services/ingest.ts](../apps/server/src/services/ingest.ts)
-  for the HMAC matching logic.
+  and [services/github-signature.ts](../apps/server/src/services/github-signature.ts).

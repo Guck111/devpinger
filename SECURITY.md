@@ -30,9 +30,22 @@ before persistence.
 
 ## In flight
 
-- All inbound webhooks are HMAC-verified. GitHub: `X-Hub-Signature-256`
-  matched against the per-subscription secret. Jira: subscription id
-  in the path, scope verified against `subscriptions.is_active = true`.
+- All inbound webhooks are verified before any state change.
+  - **GitHub**: `X-Hub-Signature-256` HMAC matched against the
+    per-subscription secret stored in `subscriptions.webhook_secret`.
+    All subscriptions are tried until one matches (constant-time
+    compare) so a single shared endpoint can multiplex many users.
+  - **Jira**: the connection id in the path
+    (`/webhooks/jira/:id`) selects the user; the per-tenant secret
+    travels in `?secret=…` (Atlassian Dynamic Webhooks won't let us
+    set request headers) and is compared constant-time against
+    `connections.encrypted_credentials.jiraWebhook.secret`. A legacy
+    subscription-id path with `subscriptions.webhook_secret` is still
+    accepted to migrate older registrations.
+  - **Stripe**: `Stripe-Signature` parsed manually
+    (`services/stripe-signature.ts`) — `t=…,v1=…` HMAC-SHA256 with
+    a 5-minute tolerance, timing-safe compare. Replay protection by
+    `UNIQUE(preorders.stripe_event_id)`.
 - The Telegram webhook is gated by `secret_token` — Grammy returns
   401 if the secret doesn't match.
 - OAuth state tokens live in the `oauth_states` table for max
@@ -43,7 +56,15 @@ before persistence.
 
 - Pino + Sentry redaction strips secret-shaped strings before they
   leave the process. The redact patterns (`packages/shared/src/redact.ts`)
-  cover GitHub tokens (`gh*_…`) and generic `Bearer <token>`.
+  cover GitHub tokens (`gh*_…`), generic `Bearer <token>` headers, and
+  the value of `?secret=…` in Jira webhook URLs (the key prefix is
+  preserved so log lines still tell us which route was hit).
+- `maskEmail` (same module) is applied at every site that logs an
+  email — landing subscribe, Stripe webhook — so logs are auditable
+  without dumping raw PII to stdout.
+- Sentry's Fastify integration has its request body, cookies, and
+  raw query string scrubbed before the event leaves the process
+  (`apps/server/src/sentry.ts`), and `sendDefaultPii: false` is on.
 - We never log raw OAuth tokens, raw webhook bodies, or full
   Telegram update payloads.
 

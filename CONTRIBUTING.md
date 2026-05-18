@@ -89,11 +89,17 @@ To keep the license line crisp, anything below ships only in the
 private `devpinger-cloud` repo. Don't open a PR adding any of these
 here:
 
-- Stripe imports, billing routes, `stripe_*` columns
+- **Recurring Stripe billing** — customer/subscription/invoice tables,
+  `invoice.*` and `customer.subscription.*` webhook handlers,
+  `/billing` HTTP routes, `/upgrade` and `/billing` bot commands.
+  (One-time **preorder** Stripe scaffolding — `preorders` table,
+  `checkout.session.completed` webhook, `STRIPE_WEBHOOK_SECRET` env —
+  is already public; it powers the $9 lifetime preorder smoke test.)
 - AI clients (Anthropic, OpenAI) or AI digest code
 - Email transports
 - Team / workspace tables
-- Anything that mentions plan-gating beyond the `noopPlanGate` stub
+- Anything that enforces plans beyond the `noopPlanGate` stub
+  (a real `stripePlanGate` ships in the private repo)
 
 If you want to contribute to those, the private repo is open to
 maintainers — reach out.

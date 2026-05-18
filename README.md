@@ -89,8 +89,11 @@ Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Self-hosting
 
 Production deployment is documented in
-[docs/SELF_HOSTING.md](docs/SELF_HOSTING.md). One-command path with the
-shipped `docker-compose.prod.yml`, plus provider-specific guides:
+[docs/SELF_HOSTING.md](docs/SELF_HOSTING.md). The shipped
+`infra/docker-compose.prod.yml` brings up redis + server + worker behind
+Caddy (TLS) and is what `infra/deploy.sh` drives; Postgres is expected
+to be a managed service (Supabase, Neon, etc.). Provider-specific
+guides:
 
 - [Hetzner / generic VPS](docs/deploy/hetzner.md)
 - [Fly.io](docs/deploy/fly.md)

@@ -49,9 +49,12 @@ runs this pipeline:
 
 1. **Verify + normalize** through the adapter
    (`sourceRegistry.require("github").verifyAndNormalize(...)`). The
-   adapter checks the signature (GitHub HMAC against
-   `subscriptions.webhook_secret`, Jira via path-param subscription
-   id) and returns `NormalizedEvent[]`.
+   adapter checks the signature (GitHub HMAC `X-Hub-Signature-256`
+   against each active `subscriptions.webhook_secret` until one
+   matches; Jira `?secret=…` constant-time-compared against
+   `connections.encrypted_credentials.jiraWebhook.secret`, with the
+   legacy `subscriptions.webhook_secret` flow still accepted) and
+   returns `NormalizedEvent[]`.
 2. **Look up the user** through the same lookup callback so we know
    `userId`, `subscriptionId`, and the connected `viewerUsername`
    (for self-mention detection).
